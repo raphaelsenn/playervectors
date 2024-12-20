@@ -3,10 +3,9 @@ Implementation of Player Vectors: Characterizing Soccer Players Playing Style fr
 
 ## Data
 
-## About Dataset
+## About the Dataset
 All the credit is to Luca Pappalardo and Emmanuele Massucco.
 
-#### To the Dataset:
 [https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset)
 
 ## Citations
