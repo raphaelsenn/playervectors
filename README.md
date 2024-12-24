@@ -1,18 +1,11 @@
 # playervectors
 Implementation of Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams
 
-## Data
-
-## About the Dataset
-All the credit is to Luca Pappalardo and Emmanuele Massucco.
-
-[https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset)
-
 #### Load Action Data
 
 ```python
 import pandas as pd
-df = pd.read_csv('passes.csv')
+df = pd.read_csv('Passes.csv')
 x, y = list(df['x']), list(df['y'])
 ```
 #### PlayerHeatMap: Visualize raw counts of action
@@ -53,6 +46,23 @@ plt.show()
 ```
 
 ![image](res/heatmap_pass.png)
+
+
+## About the Datasets
+
+### Dataset 1
+All the credit is to Luca Pappalardo and Emmanuele Massucco.
+
+[https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset)
+
+### Dataset 2
+This dataset contains European football team stats.
+Only teams of Premier League, Ligue 1, Bundesliga, Serie A and La Liga are listed.
+
+[https://www.kaggle.com/datasets/vivovinco/football-analytics](https://www.kaggle.com/datasets/vivovinco/football-analytics)
+
+
+
 
 
 ## Citations

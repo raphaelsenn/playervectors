@@ -177,3 +177,7 @@ cython_debug/
 
 # Ignore data folder
 eventstreams/
+
+# Testing data
+!Passes.csv
+!Shots.csv

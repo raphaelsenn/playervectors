@@ -11,14 +11,14 @@ class PlayerHeatMap:
                  sigma: float = 1.0,
                  player_name: str | None=None,
                  player_id: int | None=None,
-                 acion_name: str | None=None,
+                 action_name: str | None=None,
                  action_id: int | None=None):
         self.shape_ = shape 
         self.components = n_components 
         self.sigma = sigma
         self.player_name = player_name
         self.player_id = player_id
-        self.action_name = acion_name
+        self.action_name = action_name
         self.action_id = action_id
 
         self.raw_counts_ = np.zeros(shape=self.shape_, dtype=np.int16)
