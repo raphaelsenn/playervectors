@@ -5,7 +5,7 @@ Implementation of Player Vectors: Characterizing Soccer Players Playing Style fr
 
 ```python
 import pandas as pd
-df = pd.read_csv('Passes.csv')
+df = pd.read_csv('data/Passes.csv')
 x, y = list(df['x']), list(df['y'])
 ```
 #### PlayerHeatMap: Visualize raw counts of action
