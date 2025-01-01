@@ -30,7 +30,7 @@ class PlayerHeatMap:
         self.heatmap_ = gaussian_filter(self.raw_counts_, sigma=self.sigma)
 
     def shape(self) -> tuple[int, int]:
-        return self.shape 
+        return self.shape_
 
     def heatmap(self) -> plt.plot:
         plt.title(f'Heatmap for action: {self.action_name}')

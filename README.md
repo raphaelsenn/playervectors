@@ -22,7 +22,7 @@ action_pass.fit(x, y)
 
 # Visualize Playing style for desired action as raw counts
 plt.figure(figsize=(12, 6))
-action.raw_counts()
+action_pass.raw_counts()
 plt.show()
 ```
 ![image](res/raw_counts_pass.png)
