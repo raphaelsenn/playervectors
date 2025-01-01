@@ -66,7 +66,7 @@ class ConditionData:
     def creat_file(self, pfad_name = ""):
         """Creates a CSV file with the actual __dataset"""
         if not self.__actuell["dataset"]:
-            raise ValueError("self.dataset is not up to date")
+            raise ValueError("self.dataset is not up to date (run self.create_conditionData())")
         if self.__dataset is not None:
             if pfad_name =="":
                 pfad_name = self.dataset_name
@@ -75,6 +75,8 @@ class ConditionData:
         raise ValueError("self.dataset is None") 
     def fit(self ,coor_x:str, coor_y:str):
         """calls fit function of the self.playerheatmap"""
+        if not self.__actuell["dataset"]:
+            raise ValueError("self.dataset is not up to date (run self.create_conditionData())")
         self.__actuell["playerheatmap"] = True
         self.playerheatmap.fit(self.__dataset[coor_x],self.__dataset[coor_y])
     def shape(self) -> tuple[int, int]:
