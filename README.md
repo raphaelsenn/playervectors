@@ -5,7 +5,7 @@ Implementation of Player Vectors: Characterizing Soccer Players Playing Style fr
 ### Create a ConditionData
 ```python
 # creat an instance
-#,_conditions take a list of functions 
+#_conditions take a list of functions 
     conditionData = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
                         dataset_link="data\\example_data.csv", 
                         playerheatmap=player.PlayerHeatMap(shape=(50,50)))
