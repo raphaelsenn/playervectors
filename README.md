@@ -1,6 +1,28 @@
 # playervectors
 Implementation of Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams
 
+
+### Create a ConditionData
+```python
+# creat an instance
+#,_conditions take a list of functions 
+    conditionData = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
+                        dataset_link="data\\example_data.csv", 
+                        playerheatmap=player.PlayerHeatMap(shape=(50,50)))
+# creats an DataFrame
+    conditionData.create_conditionData()
+# creats an File with the content of the DataFrame
+    conditionData.creat_file("data\\Example")
+    plt.figure(figsize=(12, 6))
+#calls supmethode from the playerheatmap
+    conditionData.fit("pos_orig_x","pos_orig_y")
+    conditionData.heatmap()
+    plt.show()
+
+```
+
+
+
 #### Load Action Data
 
 ```python
