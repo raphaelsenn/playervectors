@@ -100,10 +100,9 @@ class ConditionData:
 if __name__ == "__main__":
     test = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
                         dataset_link="data\\example_data.csv", 
-                        playerheatmap=player.PlayerHeatMap(shape=(50,50)))
+                        playerheatmap=player.PlayerHeatMap(action_name="Simple pass",shape=(50,50)))
     test.create_conditionData()
     test.creat_file("data\\Example")
-    test.creat_file()
     plt.figure(figsize=(12, 6))
     test.fit("pos_orig_x","pos_orig_y")
     test.heatmap()
