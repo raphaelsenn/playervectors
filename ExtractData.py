@@ -90,3 +90,53 @@ def ExtractMinutesPlayed(df: pd.DataFrame, attributes: list[str]) -> dict[int, f
         else:
             minutes_played[id] += minutes
     return minutes_played
+
+
+def ExtractCoordinates(df: pd.DataFrame,
+                       column_player_id: str,
+                       column_event_name: str,
+                       column_x: str,
+                       column_y: str,
+                       actions: list[str]) -> dict[str,
+                                                   dict[int, tuple[list[int], list[int]]]]:
+    """
+    {
+     'pass' -> {1 -> [coordinates (x, y) where player with id=1 perfroms action 'pass'], 2 -> [coordinates (x, y) where player with id=2 perfroms action 'pass'], ...}
+     'shot' -> {1 -> [coordinates (x, y) where player with id=1 perfroms action 'shot'], ... }
+     'dribble' -> {1 -> [coordinates (x, y) where player with id=1 perfroms action 'dribble'], ... }
+     ... 
+    }
+    
+    E.g. 
+    >>> import pandas as pd
+    >>> data = {'playerID': [1, 1, 1, 1, 2, 2, 2, 3, 3, 3],
+    ...         'action': ['pass', 'pass', 'shot', 'shot', 'pass', 'cross', 'cross', 'pass', 'pass', 'pass'],
+    ...         'x': [55, 50, 53, 54, 43, 43, 42, 17, 10, 15],
+    ...         'y': [45, 40, 43, 44, 33, 23, 32, 57, 50, 55]}
+    >>> df = pd.DataFrame(data=data)
+    >>> df
+       playerID action   x   y
+    0         1   pass  55  45
+    1         1   pass  50  40
+    2         1   shot  53  43
+    3         1   shot  54  44
+    4         2   pass  43  33
+    5         2  cross  43  23
+    6         2  cross  42  32
+    7         3   pass  17  57
+    8         3   pass  10  50
+    9         3   pass  15  55
+    >>> action_coordinates = ExtractCoordinates(df=df,
+    ...                                         column_player_id='playerID',
+    ...                                         column_event_name='action',
+    ...                                         column_x='x',
+    ...                                         column_y='y')
+    >>> action_coordinates
+    """
+    action_coordinates = {} 
+    for action in actions:
+        df_action = df.loc[df[column_event_name] == action]
+        df_action = df_action.groupby([column_player_id]).agg({column_x: list, column_y: list}).reset_index()
+        dict_action = df_action.set_index(column_player_id).apply(tuple, axis=1).to_dict()
+        action_coordinates[action] = dict_action
+    return action_coordinates 
