@@ -13,8 +13,10 @@ def ExtractPlayers(df: pd.DataFrame,
     ...         'FirstName': ['Manuel', 'Bastian', 'Oliver'],
     ...         'LastName': ['Neuer', 'Schweinsteiger', 'Kahn'],
     ...         'Age': [38, 40, 55]}
+    
     >>> df_players = pd.DataFrame(data)
     >>> players = ExtractPlayers(df=df_players, wy_id='ID', attributes=['FirstName', 'LastName', 'Age']) 
+    
     >>> players 
     {1: ['Manuel', 'Neuer', 38], 2: ['Bastian', 'Schweinsteiger', 40], 3: ['Oliver', 'Kahn', 55]}
     """
@@ -47,6 +49,7 @@ def ExtractTeams(df: pd.DataFrame,
     ...         'City': ['Barcelona', 'Muenchen', 'Freiburg']}
     >>> df_teams = pd.DataFrame(data)
     >>> teams = ExtractTeams(df=df_teams, wy_id='ID', attributes=['TeamName', 'City']) 
+    
     >>> teams
     {1: ['FC Barcelona', 'Barcelona'], 2: ['FC Bayern Muenchen', 'Muenchen'], 3: ['SC Freiburg', 'Freiburg']}
     """
@@ -77,6 +80,7 @@ def ExtractMinutesPlayed(df: pd.DataFrame, attributes: list[str]) -> dict[int, f
     >>> data = {'playerID': [1, 2, 1, 2, 3], 'minutes': [90, 87, 90, 90, 19]} 
     >>> df = pd.DataFrame(data)    
     >>> minutes = ExtractMinutesPlayed(df=df, attributes=['playerID', 'minutes']) 
+    
     >>> minutes
     {1: 180, 2: 177, 3: 19}
     """
@@ -109,11 +113,13 @@ def ExtractCoordinates(df: pd.DataFrame,
     
     E.g. 
     >>> import pandas as pd
+    
     >>> data = {'playerID': [1, 1, 1, 1, 2, 2, 2, 3, 3, 3],
     ...         'action': ['pass', 'pass', 'shot', 'shot', 'pass', 'cross', 'cross', 'pass', 'pass', 'pass'],
     ...         'x': [55, 50, 53, 54, 43, 43, 42, 17, 10, 15],
     ...         'y': [45, 40, 43, 44, 33, 23, 32, 57, 50, 55]}
     >>> df = pd.DataFrame(data=data)
+    
     >>> df
        playerID action   x   y
     0         1   pass  55  45
@@ -126,12 +132,24 @@ def ExtractCoordinates(df: pd.DataFrame,
     7         3   pass  17  57
     8         3   pass  10  50
     9         3   pass  15  55
+    
     >>> action_coordinates = ExtractCoordinates(df=df,
     ...                                         column_player_id='playerID',
     ...                                         column_event_name='action',
     ...                                         column_x='x',
-    ...                                         column_y='y')
+    ...                                         column_y='y',
+    ...                                         actions=['pass', 'shot', 'cross'])
     >>> action_coordinates
+    {'pass': {1: ([55, 50], [45, 40]), 2: ([43], [33]), 3: ([17, 10, 15], [57, 50, 55])}, 'shot': {1: ([53, 54], [43, 44])}, 'cross': {2: ([43, 42], [23, 32])}}
+
+    >>> action_coordinates = ExtractCoordinates(df=df,
+    ...                                         column_player_id='playerID',
+    ...                                         column_event_name='action',
+    ...                                         column_x='x',
+    ...                                         column_y='y',
+    ...                                         actions=['shot', 'dribble'])
+    >>> action_coordinates
+    {'shot': {1: ([53, 54], [43, 44])}, 'dribble': {}}
     """
     action_coordinates = {} 
     for action in actions:
@@ -139,4 +157,4 @@ def ExtractCoordinates(df: pd.DataFrame,
         df_action = df_action.groupby([column_player_id]).agg({column_x: list, column_y: list}).reset_index()
         dict_action = df_action.set_index(column_player_id).apply(tuple, axis=1).to_dict()
         action_coordinates[action] = dict_action
-    return action_coordinates 
+    return action_coordinates
