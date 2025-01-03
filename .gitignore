@@ -181,3 +181,7 @@ eventstreams/
 # Testing data
 !Passes.csv
 !Shots.csv
+!example_data.csv
+!example_players.csv
+!example_teams.csv
+!example_playerrank.csv
