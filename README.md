@@ -21,8 +21,6 @@ Implementation of [Player Vectors: Characterizing Soccer Players Playing Style f
 
 ```
 
-
-
 #### Load Action Data
 
 ```python
@@ -68,6 +66,19 @@ plt.show()
 ```
 
 ![image](res/heatmap_pass.png)
+
+## Use Repository with Data
+
+#### 1. Download this [Dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset) on Kaggle
+
+#### 2. Create a folder named event_streams in this Repository
+
+```bash
+mkdir event_streams
+```
+
+#### 3. Copy all .csv files from the Dataset in the folder event_streams
+
 
 
 ## About the Datasets
