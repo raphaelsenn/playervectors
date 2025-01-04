@@ -83,7 +83,7 @@ class PlayerHeatMap:
         # Building a Player Heatmap 
 
         # 1. Counting 
-        self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]])
+        self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]], range=[[0,100],[0,100]])
         X = self.raw_counts_
 
         # 2. Normalizing (only if minutes_played > 0.0)
