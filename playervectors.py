@@ -80,15 +80,18 @@ class PlayerHeatMap:
         minutes_played : float
             Total minutes played (should be with respect to x, y coordinates)
         """ 
+        # Building a Player Heatmap 
+
+        # 1. Counting 
         self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]])
-        self.heatmap_ = gaussian_filter(self.raw_counts_, sigma=self.sigma)
         X = self.raw_counts_
-        
-        # Normalize if played minutes are given. 
+
+        # 2. Normalizing (only if minutes_played > 0.0)
         if minutes_played > 0.0: 
             self.normed_counts_ = self.raw_counts_ / minutes_played
             X = self.normed_counts_
-
+    
+        # 3. Smoothing
         self.heatmap_ = gaussian_filter(X, sigma=self.sigma)
 
     def shape(self) -> tuple[int, int]:
@@ -98,6 +101,9 @@ class PlayerHeatMap:
         return self.shape_
 
     def heatmap(self) -> plt.plot:
+        """
+        Uses seaborn to plot a smoothed heatmap 
+        """ 
         if self.player_name is not None: 
             plt.title(f'Heatmap of {self.player_name} for action: {self.action_name}')
         else: 
@@ -105,9 +111,21 @@ class PlayerHeatMap:
         return sns.heatmap(self.heatmap_)
     
     def raw_counts(self) -> plt.plot:
-        plt.title(f'Raw counts for action: {self.action_name}')
+        """
+        Uses seaborn to plot heatmap with raw_counts (like a scatter plot) 
+        """ 
+        if self.player_name is not None: 
+            plt.title(f'Raw counts of {self.player_name} for action: {self.action_name}')
+        else: 
+            plt.title(f'Raw counts for action: {self.action_name}')
         return sns.heatmap(self.raw_counts_)
 
     def normed_counts(self) -> plt.plot:
-        plt.title(f'Normed counts for action: {self.action_name}')
+        """
+        Uses seaborn to plot heatmap with normalized counts (like a scatter plot) 
+        """ 
+        if self.player_name is not None: 
+            plt.title(f'Normalized counts of {self.player_name} for action: {self.action_name}')
+        else: 
+            plt.title(f'Normed counts for action: {self.action_name}')
         return sns.heatmap(self.normed_counts_)
