@@ -5,6 +5,9 @@ from dataclasses import dataclass,field,InitVar
 from typing import Callable,Any
 import matplotlib.pyplot as plt
 
+
+
+
 @dataclass
 class ConditionData:
     """
@@ -27,15 +30,24 @@ class ConditionData:
     """
     dataset_name: str
     _conditions: InitVar[list[Callable[[Any], bool]]]
+    _rewrite: InitVar[list[Callable[[pd.DataFrame], pd.DataFrame]]] 
+    _delete_colum:InitVar[list[str]]
     dataset_link: str = ""
     playerheatmap: player.PlayerHeatMap = field(default_factory=player.PlayerHeatMap)
     flip_sec_half_coordinates: bool = True
+
+
+
+    __delete_colum:list[str]= field( init=False, default_factory=list)
+    __rewrite:list[Callable[[pd.DataFrame], pd.DataFrame]] = field( init=False, default_factory=list)
     __actuell: dict[str, bool] = field(init=False,default_factory=lambda: {"dataset": False, "playerheatmap": False})
     __dataset: pd.DataFrame = field(init=False,default_factory=pd.DataFrame)
     __conditions: list[Callable[[Any], bool]] = field(init=False,default_factory=list)
 
-    def __post_init__(self,_conditions):
+    def __post_init__(self,_conditions, _rewrite,_delete_colum):
         self.__conditions = _conditions
+        self.__rewrite = _rewrite
+        self.__delete_colum = _delete_colum
     @property
     def conditions(self) ->  list[Callable[[Any], bool]] :
         return self.__conditions
@@ -45,13 +57,28 @@ class ConditionData:
         self.__conditions = new_cond
         for i in self.__actuell.keys():
             self.__actuell[i] = False
-
+    @property
+    def rewrite(self)-> list[Callable[[pd.DataFrame], pd.DataFrame]]:
+        return self.__rewrite
+    @rewrite.setter
+    def rewrite(self, new:list[Callable[[pd.DataFrame], pd.DataFrame]]):
+        self.__rewrite = new
+        for i in self.__actuell.keys():
+            self.__actuell[i] = False
     @property
     def dataset(self):
         """getter for __dataset"""
         if not self.__actuell["dataset"]:
             raise ValueError("self.dataset is not up to date")
         return self.__dataset
+    @property
+    def delete_colum(self)-> list[str]:
+        return self.__delete_colum
+    @delete_colum.setter
+    def delete_colum(self, new : list[str]):
+        self.__delete_colum = new
+        for i in self.__actuell.keys():
+            self.__actuell[i] = False
     def create_conditionData(self, indicator_2half ='matchPeriod' , des_2haf='2H',startx= "pos_orig_x" , starty= "pos_orig_y", endx= "pos_dest_x", endy = "pos_dest_y"):
         """Creats a dataset only with the row who fulfills the conditions"""
         self.__actuell["dataset"]=True
@@ -60,7 +87,11 @@ class ConditionData:
 
         if self.flip_sec_half_coordinates:
             data_condition.loc[data_condition[indicator_2half] == des_2haf, [starty,startx,endy,endx] ]=100-data_condition.loc[data_condition[indicator_2half] == des_2haf, [starty, startx,endy,endx] ] 
+        for rewrites in self.rewrite:
 
+            data_condition = rewrites(data_condition)
+        
+        data_condition = data_condition.drop(columns=self.delete_colum)
         self.__dataset = data_condition
 
     def creat_file(self, pfad_name = ""):
@@ -70,7 +101,7 @@ class ConditionData:
         if self.__dataset is not None:
             if pfad_name =="":
                 pfad_name = self.dataset_name
-            self.__dataset.to_csv(f"{pfad_name}.csv", sep="\t", index=False)
+            self.__dataset.to_csv(f"{pfad_name}.csv", sep=",", index=False)
             return None
         raise ValueError("self.dataset is None") 
     def fit(self ,coor_x:str, coor_y:str):
@@ -98,13 +129,24 @@ class ConditionData:
 
     
 if __name__ == "__main__":
-    test = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
+    def testfunc(x):
+        var = 0
+    
+        
+        for i in  range(len(x["pos_orig_y"])):
+            x.loc[i, "pos_orig_y"] = var
+            #i["pos_orig_y"] = var
+            var+=1
+        print(x["pos_orig_y"])
+        return x
+    test = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],_rewrite=[],_delete_colum = [],
                         dataset_link="data\\example_data.csv", 
                         playerheatmap=player.PlayerHeatMap( action_name="Simple pass1",shape=(50,50)))
     test.create_conditionData()
-    test2 = ConditionData(dataset_name="Example2",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
+    test2 = ConditionData(dataset_name="Example2",_conditions=[lambda x: x["subEventName"] == "Simple pass"],_rewrite=[testfunc],_delete_colum = ["tags"],
                         dataset_link="data\\example_data2.csv",playerheatmap=player.PlayerHeatMap( action_name="Simple pass2",shape=(50,50)))
     test2.create_conditionData()
+    test2.creat_file("data\\example_data2")
     plt.figure(1,figsize=(12, 6))
     test.fit("pos_orig_x","pos_orig_y")
     test.raw_counts()
