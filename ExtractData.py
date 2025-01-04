@@ -69,17 +69,17 @@ def ExtractTeams(df: pd.DataFrame,
     return teams
 
 
-def ExtractMinutesPlayed(df: pd.DataFrame, attributes: list[str]) -> dict[int, float]:
+def ExtractMinutesPlayed(df: pd.DataFrame,
+                         column_player: str,
+                         column_minutes: str) -> dict[int, float]:
     """
-    attributes: [ID, minutes]
-
     Map PlayerID to sum of played minutes for every game.
 
     E.g.
     >>> import pandas as pd
     >>> data = {'playerID': [1, 2, 1, 2, 3], 'minutes': [90, 87, 90, 90, 19]} 
     >>> df = pd.DataFrame(data)    
-    >>> minutes = ExtractMinutesPlayed(df=df, attributes=['playerID', 'minutes']) 
+    >>> minutes = ExtractMinutesPlayed(df=df, column_player='playerID', column_minutes='minutes') 
     
     >>> minutes
     {1: 180, 2: 177, 3: 19}
@@ -88,7 +88,7 @@ def ExtractMinutesPlayed(df: pd.DataFrame, attributes: list[str]) -> dict[int, f
     minutes_played = {}
 
     for _, row in df.iterrows():
-        id, minutes = row[attributes[0]], row[attributes[1]]
+        id, minutes = row[column_player], row[column_minutes]
         if id not in minutes_played:
             minutes_played[id] = minutes
         else:
@@ -151,7 +151,7 @@ def ExtractCoordinates(df: pd.DataFrame,
     >>> action_coordinates
     {'shot': {1: ([53, 54], [43, 44])}, 'dribble': {}}
     """
-    action_coordinates = {} 
+    action_coordinates = {}
     for action in actions:
         df_action = df.loc[df[column_event_name] == action]
         df_action = df_action.groupby([column_player_id]).agg({column_x: list, column_y: list}).reset_index()

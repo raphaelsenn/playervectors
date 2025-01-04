@@ -1,5 +1,5 @@
 # playervectors
-Implementation of Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams
+Implementation of [Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams](https://ecmlpkdd2019.org/downloads/paper/701.pdf)
 
 
 ### Create a ConditionData
@@ -94,7 +94,10 @@ Only teams of Premier League, Ligue 1, Bundesliga, Serie A and La Liga are liste
   title     = {Player Vectors: Characterizing Soccer Players’
 Playing Style from Match Event Streams},
   author    = {Tom Decroos, Jesse Davis},
-  journal   = {ArXiv},
+  journal   = {ecmlpkdd2019},
   year      = {2019},
 }
 ```
+
+#### Paper of Author: [paper](https://ecmlpkdd2019.org/downloads/paper/701.pdf)
+#### PowerPoint of Author: [powerpoint](https://tomdecroos.github.io/reports/playing-style-wide-v2.pdf)
