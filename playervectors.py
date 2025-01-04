@@ -4,7 +4,12 @@ import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import NMF
 
+
 class PlayerHeatMap:
+    """
+    A class to represent a heatmap for a soccer-player with specified actions 
+    """ 
+    
     def __init__(self,
                  shape: tuple[int, int]=(50, 50),
                  n_components: int=1,
@@ -14,15 +19,34 @@ class PlayerHeatMap:
                  action_name: str | None=None,
                  action_id: int | None=None):
         """
-        Initialize PlayerHeatMap
+        Parameters:
+        __________
+        shape : tuple[int, int]
+            Dimension of heatmap matrix
+        
+        n_components : int
+            Components for NMF
+        
+        sigma : float
+            Parameter for gaussian_filter
+
+        player_name : str
+            Name of the player
+
+        player_id : int
+            ID for player
+
+        action_name : str
+            Name of the action
+
+        action_id : int
+            ID for action 
         """ 
         self.shape_ = shape 
         self.components = n_components 
         self.sigma = sigma
         self.player_id = player_id
-        self.player_name = player_name 
         self.action_id = action_id
-        self.action_name = action_name 
         self.raw_counts_ = np.zeros(shape=self.shape_, dtype=np.int16)
         self.normed_counts_ = np.zeros(shape=self.shape_, dtype=np.float16)
         self.heatmap_ = np.zeros(shape=self.shape_, dtype=np.float16)
@@ -44,6 +68,17 @@ class PlayerHeatMap:
             minutes_played: float=0.0) -> None:
         """
         Fits Heatmap to Soccer-Action data 
+
+        Parameters:
+        -----------
+        x : np.ndarray or list[int]
+            List of x coordinates where player perfroms specified action
+        
+        y : np.ndarray or list[int]
+            List of y coordinates where player perfroms specified action
+
+        minutes_played : float
+            Total minutes played (should be with respect to x, y coordinates)
         """ 
         self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]])
         self.heatmap_ = gaussian_filter(self.raw_counts_, sigma=self.sigma)
@@ -57,6 +92,9 @@ class PlayerHeatMap:
         self.heatmap_ = gaussian_filter(X, sigma=self.sigma)
 
     def shape(self) -> tuple[int, int]:
+        """
+        Returns the shape of the heatmap as a tuple[int, int] 
+        """
         return self.shape_
 
     def heatmap(self) -> plt.plot:
