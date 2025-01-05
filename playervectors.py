@@ -12,6 +12,7 @@ class PlayerHeatMap:
     
     def __init__(self,
                  shape: tuple[int, int]=(50, 50),
+                 map_size: tuple[tuple[int, int], tuple[int, int]] = ((0, 100), (0, 100)),
                  n_components: int=1,
                  sigma: float = 1.0,
                  player_name: str | None=None,
@@ -22,8 +23,9 @@ class PlayerHeatMap:
         Parameters:
         __________
         shape : tuple[int, int]
+            resolution of heatmap matrix
+        map_size: tuple[tuple[int, int], tuple[int, int]]
             Dimension of heatmap matrix
-        
         n_components : int
             Components for NMF
         
@@ -42,8 +44,9 @@ class PlayerHeatMap:
         action_id : int
             ID for action 
         """ 
-        self.shape_ = shape 
-        self.components = n_components 
+        self.shape_ = shape
+        self.map_size = map_size
+        self.components = n_components
         self.sigma = sigma
         self.player_id = player_id
         self.action_id = action_id
@@ -83,7 +86,7 @@ class PlayerHeatMap:
         # Building a Player Heatmap 
 
         # 1. Counting 
-        self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]], range=[[0,100],[0,100]])
+        self.raw_counts_, _, _ = np.histogram2d(x, y, bins=[self.shape_[0], self.shape_[1]], range=self.map_size)
         X = self.raw_counts_
 
         # 2. Normalizing (only if minutes_played > 0.0)
