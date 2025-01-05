@@ -2,7 +2,7 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
-from sklearn.decomposition import NMF
+#from sklearn.decomposition import NMF
 
 
 class PlayerHeatMap:
