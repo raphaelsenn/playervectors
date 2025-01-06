@@ -2,7 +2,29 @@ import numpy as np
 import seaborn as sns
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
-#from sklearn.decomposition import NMF
+from sklearn.decomposition import NMF
+
+
+class PlayerVectors:
+    """
+    A class to fit a playervectors to a soccer-player with actions event stream data
+    """ 
+    def __init__(self,
+                 action: str | None=None,
+                 shape: tuple[int, int] = (50, 50), 
+                 sigma: float=1.0, 
+                 k_components: int=4,
+                 random_state: int=0) -> None:
+        
+        self.action_ = action
+        self.shape_ = shape
+        self.sigma_ = sigma
+        self.k_components = k_components
+        self.random_state = random_state
+
+    def fit(self,
+            coordinates) -> None:
+        model = NMF(n_components=self.k_components, init='random', random_state=0)
 
 
 class PlayerHeatMap:
