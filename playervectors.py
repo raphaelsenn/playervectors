@@ -10,7 +10,6 @@ class PlayerVectors:
     A class to fit a playervectors to a soccer-player with actions event stream data
     """ 
     def __init__(self,
-                 action: str | None=None,
                  shape: tuple[int, int] = (50, 50), 
                  sigma: float=1.0, 
                  random_state: int=0) -> None:
