@@ -13,18 +13,85 @@ class PlayerVectors:
                  action: str | None=None,
                  shape: tuple[int, int] = (50, 50), 
                  sigma: float=1.0, 
-                 k_components: int=4,
                  random_state: int=0) -> None:
+        """
+        Parameters:
+        -----------
         
-        self.action_ = action
+        
+        """
+
+
         self.shape_ = shape
         self.sigma_ = sigma
-        self.k_components = k_components
         self.random_state = random_state
 
+        self.playerID_to_heatmap = {}
+
+        self.M = None
+        self.W = None
+        self.H = None
+
     def fit(self,
-            coordinates) -> None:
-        model = NMF(n_components=self.k_components, init='random', random_state=0)
+            action,
+            coordinates,
+            k_components,
+            minutes_played,
+            player_names) -> None:
+        """
+        Fit data to playervectors 
+        
+        Parameters:
+        -----------
+
+
+
+        """ 
+        # TODO: Not finished, i will work on this.
+
+        # 1. Calculate for every player a heatmap
+        # 1.1 - 1.3: Counting + Normalizing + Smoothing
+        
+        playerID_to_heatmap = {}
+        for playerID, pairXY in list(coordinates[action].items()):
+            x, y = pairXY[0], pairXY[1] 
+
+            # Check for played minutes 
+            minutes = 0.0 
+            if playerID in minutes_played: 
+                minutes = minutes_played[playerID] 
+
+            # Check for player name
+            player_name = None
+            if playerID in player_names:
+                player_name = player_names[playerID]
+
+            # Build Heatmap
+            heatmap = PlayerHeatMap(shape=self.shape_,
+                                    player_name=player_name,
+                                    player_id=playerID,
+                                    action_name=action,
+                                    sigma=self.sigma_)
+            
+            # Counting + Normalizing + Smoothing 
+            heatmap.fit(x, y, minutes)
+
+            playerID_to_heatmap[playerID] = heatmap
+
+        # 2. Build matrix M
+        num_players = len(playerID_to_heatmap)
+        
+        M = [] 
+        for _, X in playerID_to_heatmap.items():
+            X_reshape = X.heatmap_.reshape(self.shape_[0] * self.shape_[1], 1)
+            M.append(X_reshape)
+        self.M = np.array(M).reshape(num_players, self.shape_[0] * self.shape_[1])
+
+        # 2.1 Apply NMF
+        model = NMF(n_components=k_components, init='random', random_state=0)
+        self.W = model.fit_transform(M)
+        self.H = model.components_
+
 
 
 class PlayerHeatMap:
