@@ -288,8 +288,9 @@ def NormalizeDirection(df: pd.DataFrame,
         if matchID in directions:
             if teamID in directions[matchID]:
                 dir_ = directions[matchID][teamID][matchPeriod]
-        
-        if dir_ == 'rtl':
-            df['pos_orig_x'] = 100 - df['pos_orig_x']
-            df['pos_orig_y'] = 100 - df['pos_orig_y']
+                
+                if dir_ == 'rtl':
+                    print(matchID)
+                    df['pos_orig_x'] = 100 - df['pos_orig_x']
+                    df['pos_orig_y'] = 100 - df['pos_orig_y']
     return df
