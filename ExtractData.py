@@ -1,4 +1,5 @@
 import pandas as pd
+import ast
 
 
 def ExtractPlayers(df: pd.DataFrame,
@@ -219,3 +220,71 @@ def ExtractCoordinates(df: pd.DataFrame,
         dict_action = df_action.set_index(column_player_id).apply(tuple, axis=1).to_dict()
         action_coordinates[action] = dict_action
     return action_coordinates
+
+
+def ExtractGoalkeepers(df: pd.DataFrame,
+                        id_col: str = 'wyId',
+                        role_col: str='role',
+                        wy_code: str='code2',
+                        keeper_str: str='GK') -> dict:
+    goalkeepers = {} 
+    for _, row in df.iterrows():
+        role_string = row[role_col]
+        role_dict = ast.literal_eval(role_string)
+        player_ID = row[id_col]  
+        player_role = role_dict[wy_code] 
+
+        if player_role == keeper_str:
+            if player_ID not in goalkeepers:
+                goalkeepers[player_ID] = player_role
+    return goalkeepers
+
+
+def CalcPlayingDirection(df: pd.DataFrame,
+                         keepers: dict) -> dict:
+    directions = {} 
+    for _, row in df.iterrows():
+        playerID = row['playerId']
+        matchID = row['matchId']
+        matchPeriod = row['matchPeriod']
+        teamID = row['teamId']
+
+        if playerID in keepers:
+            x = row['pos_orig_x']
+            direction = None 
+            if x <= 50.0:
+                # ltr = left-to-right 
+                direction = 'ltr'
+            else:
+                # rtl = right-to-left
+                direction = 'rtl'
+            if matchID not in directions:
+                directions[matchID] = {}
+            
+            if teamID not in directions[matchID]:
+                directions[matchID][teamID] = {}
+            directions[matchID][teamID][matchPeriod] = direction
+    
+    return directions
+
+
+def NormalizeDirection(df: pd.DataFrame,
+                        directions: dict,
+                        matchID_col: str='matchId',
+                        teamID_col: str='teamId',
+                        matchPeriod_col: str='matchPeriod') -> pd.DataFrame:
+    
+    for _, row in df.iterrows():
+        matchID = row[matchID_col]
+        teamID = row[teamID_col]
+        matchPeriod = row[matchPeriod_col]
+
+        dir_ = ''
+        if matchID in directions:
+            if teamID in directions[matchID]:
+                dir_ = directions[matchID][teamID][matchPeriod]
+        
+        if dir_ == 'rtl':
+            df['pos_orig_x'] = 100 - df['pos_orig_x']
+            df['pos_orig_y'] = 100 - df['pos_orig_y']
+    return df
