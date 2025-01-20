@@ -241,18 +241,23 @@ def ExtractGoalkeepers(df: pd.DataFrame,
 
 
 def CalcPlayingDirection(df: pd.DataFrame,
-                         keepers: dict) -> dict:
+                         keepers: dict,
+                         playerID_col: str='playerId',
+                         matchID_col: str='matchId',
+                         matchPeriod_col: str='matchPeriod',
+                         teamID_col: str='teamId',
+                         cord_col: str='pos_orig_x') -> dict:
     directions = {} 
     for _, row in df.iterrows():
-        playerID = row['playerId']
-        matchID = row['matchId']
-        matchPeriod = row['matchPeriod']
-        teamID = row['teamId']
+        playerID = row[playerID_col]
+        matchID = row[matchID_col]
+        matchPeriod = row[matchPeriod_col]
+        teamID = row[teamID_col]
 
         if playerID in keepers:
-            x = row['pos_orig_x']
+            cord = row[cord_col]
             direction = None 
-            if x <= 50.0:
+            if cord <= 50.0:
                 # ltr = left-to-right 
                 direction = 'ltr'
             else:
