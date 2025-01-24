@@ -278,8 +278,9 @@ def NormalizeDirection(df: pd.DataFrame,
                         matchID_col: str='matchId',
                         teamID_col: str='teamId',
                         matchPeriod_col: str='matchPeriod') -> pd.DataFrame:
-    
-    for _, row in df.iterrows():
+    rows_to_drop = []
+
+    for index, row in df.iterrows():
         matchID = row[matchID_col]
         teamID = row[teamID_col]
         matchPeriod = row[matchPeriod_col]
@@ -290,6 +291,13 @@ def NormalizeDirection(df: pd.DataFrame,
                 dir_ = directions[matchID][teamID][matchPeriod]
                 
                 if dir_ == 'rtl':
-                    df['pos_orig_x'] = 100 - df['pos_orig_x']
-                    df['pos_orig_y'] = 100 - df['pos_orig_y']
+                    df.loc[index, 'pos_orig_x'] = 100 - df['pos_orig_x'][index]
+                    df.loc[index, 'pos_orig_y'] = 100 - df['pos_orig_y'][index]
+            else:
+                rows_to_drop.append(index)
+        else:
+            rows_to_drop.append(index) 
+
+    # Drop missing values 
+    df.drop(rows_to_drop, inplace=True) 
     return df
