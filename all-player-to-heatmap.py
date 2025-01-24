@@ -73,19 +73,17 @@ def get_directions(keepers, player: dict[int,dict[str,str|int]],  match_diretion
         for _, row in dataset.iterrows():
             player_id = row["playerId"]
             if keepers.get(player_id, False):
-                print(row["pos_orig_y"])
                 if int(row["pos_orig_y"] )>50:
                     team_id = row["teamId"]#player[player_id]["currentTeamId"]
                     match_id = row["matchId"]
                     halftime = row["matchPeriod"]
                     if (team_id,match_id,halftime) not in match_diretion_filp:
-                        print("hey")
                         match_diretion_filp[(team_id,match_id,halftime)] = True
         return dataset
     return store_macthes_and_team_direction
 
-def outside_player_to_heatmap(player_heatmap:dict[int,pd.DataFrame]):
-    def player_to_heatmap(dataset:pd.DataFrame):
+def outside_player_to_dataframe(player_heatmap:dict[int,pd.DataFrame]):
+    def player_to_dataframe(dataset:pd.DataFrame):
         for i in range(len(dataset["playerId"])):
             player_id = dataset.loc[i, "playerId"]
             if player_id not in player_heatmap:
@@ -97,7 +95,7 @@ def outside_player_to_heatmap(player_heatmap:dict[int,pd.DataFrame]):
 
 
                 
-    return player_to_heatmap
+    return player_to_dataframe
 
 def outside_flip_coor(match_diretion_filp: dict):
 
@@ -105,10 +103,10 @@ def outside_flip_coor(match_diretion_filp: dict):
     def flip_coor( dataset: pd.DataFrame)->pd.DataFrame:
         for i in range(len(dataset["pos_orig_y"])):
             if (dataset.iloc[i]["teamId"],dataset.iloc[i]["matchId"],dataset.iloc[i]["matchPeriod"]) in match_diretion_filp.keys():
-                dataset.loc[i,"pos_orig_y"] = 100- dataset.loc[i,"pos_orig_y"]
-                dataset.loc[i,"pos_orig_x"] = 100- dataset.loc[i,"pos_orig_x"]
-                dataset.loc[i,"pos_dest_y"] = 100- dataset.loc[i,"pos_dest_y"]
-                dataset.loc[i,"pos_dest_x"] = 100- dataset.loc[i,"pos_dest_x"]
+                dataset.iloc[i]["pos_orig_y"] = 100- dataset.iloc[i]["pos_orig_y"] 
+                dataset.iloc[i]["pos_orig_x"] = 100- dataset.iloc[i]["pos_orig_x"] 
+                dataset.iloc[i]["pos_dest_y"] = 100- dataset.iloc[i]["pos_dest_y"] 
+                dataset.iloc[i]["pos_dest_x"] = 100- dataset.iloc[i]["pos_dest_x"] 
         return dataset
     return flip_coor
 
@@ -123,7 +121,7 @@ if __name__ == "__main__":
                             empyt_dict)
     func2 = outside_flip_coor(empyt_dict)
 
-    func3 = outside_player_to_heatmap(player_dataframe)
+    func3 = outside_player_to_dataframe(player_dataframe)
     con = CData.ConditionData(dataset_name="test",
                               _dataset_link="data/example_data.csv",
                                _conditions = [], 
