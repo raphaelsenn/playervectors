@@ -259,7 +259,7 @@ class PlayerHeatMap:
 
         # 2. Normalizing (only if minutes_played > 0.0)
         if minutes_played > 0.0: 
-            self.normed_counts_ = self.raw_counts_ / minutes_played
+            self.normed_counts_ = self.raw_counts_ * (90.0 / minutes_played)
             X = self.normed_counts_
     
         # 3. Smoothing

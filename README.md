@@ -60,7 +60,8 @@ components, and 5 pass components, adding up to form length-18 player vectors.
 The player vector v of a player p is the concatenation of his compressed vectors
 for the relevant action types.
 
-
+## Detailed Algorithm
+![image](res/algorithm.png)
 
 
 ## Use Repository with Data
