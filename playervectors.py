@@ -1,6 +1,7 @@
 import numpy as np
 import seaborn as sns
 import warnings
+import math
 import matplotlib.pyplot as plt
 from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import NMF
@@ -36,7 +37,10 @@ class PlayerVectors:
         self.loss_nmf = loss_nmf
 
         # Mapping player'ids to corresponding k-component player vector
-        self.player_vectors = None
+        self.player_vectors = {}
+        self.action_M = {}
+        self.action_W = {}
+        self.action_H = {}
     
     def fit(self,
             coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
@@ -121,9 +125,9 @@ class PlayerVectors:
         # (3.2): Construction of matrix M:
         for action in action_to_matrix:
             M = np.array(action_to_matrix[action])
-            M = M.reshape(self.grid[0] * self.grid[1], len(M))
+            # M = M.reshape(self.grid[0] * self.grid[1], len(M))
+            M = M.reshape(len(M), self.grid[0] * self.grid[1]).T 
             action_to_matrix[action] = M
-
 
         # -----------------------------------------------------------------------------
         # (3.3): Compress matrix M by applying non-negative matrix factorization (NMF)
@@ -149,6 +153,12 @@ class PlayerVectors:
             principal_vector = np.split(H, H.shape[1], axis=1) 
             actions_to_vectors[action] = principal_vector
 
+            # Update member variables 
+            self.action_M[action] = M
+            self.action_W[action] = W
+            self.action_H[action] = H
+ 
+
             if verbose:
                 print(f'Action: {action}\tShape of M: {M.shape}\tShape of W: {W.shape}\tShape of H: {H.shape}')
 
@@ -167,6 +177,35 @@ class PlayerVectors:
                 player_to_vector[playerID].extend(vector.flatten())
         
         self.player_vectors = player_to_vector
+
+    def plot_principle_components(self,
+                                  figsize: tuple[int, int]=(20, 40)) -> plt.plot:
+        total_components = sum(self.components)
+
+        # Determine the number of rows, ensuring it's an integer
+        rows = math.ceil(total_components / 2)
+        
+        # Create subplots with calculated rows and 2 columns
+        fig, axes = plt.subplots(nrows=rows, ncols=2, figsize=figsize)
+
+        # Flatten axes if there's more than one row, to simplify indexing
+        if rows > 1:
+            axes = axes.flatten()
+        else:
+            axes = [axes]  # Make it iterable if only one row
+
+        n = 0
+        for i, (action, W) in enumerate(self.action_W.items()):
+            for k in range(self.components[i]):
+                W_k = W.T[k].reshape(self.grid[0], self.grid[1])
+                sns.heatmap(W_k, ax=axes[n])
+                axes[n].set_title(f'Component {n + 1} ({action})')
+                n += 1
+
+        # Adjust layout to avoid overlap
+        plt.tight_layout()
+
+        return fig  # Return the figure object
 
 
 class PlayerHeatMap:
