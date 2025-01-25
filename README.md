@@ -1,71 +1,67 @@
 # playervectors
 Implementation of [Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams](https://ecmlpkdd2019.org/downloads/paper/701.pdf)
 
+## Building Player Vectors
 
-### Create a ConditionData
-```python
-# creat an instance
-#_conditions take a list of functions 
-    conditionData = ConditionData(dataset_name="Example",_conditions=[lambda x: x["subEventName"] == "Simple pass"],
-                        dataset_link="data\\example_data.csv", 
-                        playerheatmap=player.PlayerHeatMap(shape=(50,50)))
-# creats an DataFrame
-    conditionData.create_conditionData()
-# creats an File with the content of the DataFrame
-    conditionData.creat_file("data\\Example")
-    plt.figure(figsize=(12, 6))
-#calls supmethode from the playerheatmap
-    conditionData.fit("pos_orig_x","pos_orig_y")
-    conditionData.heatmap()
-    plt.show()
+### 1. Selecting Relevant Action Types
+In the paper, they set $k_t$ as the minimal number of components needed to explain
+70% of the variance in the heatmaps of action type $t$. This parameter setting
+was empirically found to work well because of the high variability of players
+positions in their actions (see Challenge 1 in Section 2 in the paper).
 
-```
+Ignoring 30% of the variance allows to summarize a player’s playstyle only by his dominant regions
+on the field rather than model every position on the field he ever occupied.
 
-#### Load Action Data
+This design choice could lead to use 4 shot components, 4 cross components, 5 dribble
+components, and 5 pass components, adding up to form length-18 player vectors. 
 
-```python
-import pandas as pd
-df = pd.read_csv('data/Passes.csv')
-x, y = list(df['x']), list(df['y'])
-```
-#### PlayerHeatMap: Visualize raw counts of action
+### 2. Constructing Heatmaps
 
-```python
-import matplotlib.pyplot as plt
-from playervectors import PlayerHeatMap
+#### 2.1 Counting
+![image](res/counting.png)
 
-# Create Action Component
-action_pass = PlayerHeatMap(action_name='Pass')
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
 
-# Fit action
-action_pass.fit(x, y)
+#### 2.2 Normalizing
 
-# Visualize Playing style for desired action as raw counts
-plt.figure(figsize=(12, 6))
-action_pass.raw_counts()
-plt.show()
-```
-![image](res/raw_counts_pass.png)
+#### 3.3 Smoothing
+![image](res/smoothing.png)
 
-#### PlayerHeatMap: Visualize heatmap of action
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
 
-```python
-import matplotlib.pyplot as plt
-from playervectors import PlayerHeatMap
 
-# Create Action Component
-action_pass = PlayerHeatMap(action_name='Pass')
+### 3. Compressing Heatmaps to Vectors
 
-# Fit action
-action_pass.fit(x, y)
+#### 3.1 Reshaping
+![image](res/reshaping.png)
 
-# Visualize Playing style for desired action as heatmap
-plt.figure(figsize=(12, 6))
-action_pass.heatmap()
-plt.show()
-```
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
 
-![image](res/heatmap_pass.png)
+
+#### 3.2 Construct the matrix M
+
+#### 3.3 Compress matrix M by applying non-negative matrix factorization (NMF)
+
+![image](res/nmf.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
+
+
+
+### 4. Assembling Player Vectors
+The player vector v of a player p is the concatenation of his compressed vectors
+for the relevant action types.
+
+
+
 
 ## Use Repository with Data
 
