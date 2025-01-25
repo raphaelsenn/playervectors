@@ -44,7 +44,7 @@ class ConditionData:
     _delete_colum: InitVar[list[str]]
     _dataset_link: InitVar[str]
     playerheatmap: player.PlayerHeatMap = field(default_factory=player.PlayerHeatMap)
-    flip_sec_half_coordinates: bool = True
+    flip_sec_half_coordinates: bool = False
 
     __actuell: dict[str, bool] = field(init=False,default_factory=lambda: {"dataset": False, "playerheatmap": False})
     __dataset: pd.DataFrame = field(init=False,default_factory=pd.DataFrame)
@@ -90,11 +90,17 @@ class ConditionData:
         for i in self.__actuell.keys():
             self.__actuell[i] = False
     @property
-    def dataset(self):
+    def dataset(self)-> pd.DataFrame:
         """getter for __dataset"""
         if not self.__actuell["dataset"]:
             raise ValueError("self.dataset is not up to date")
         return self.__dataset
+    
+    @dataset.setter
+    def dataset(self, newData: pd.DataFrame):
+        for i in self.__actuell.keys():
+            self.__actuell[i] = False
+        self.__dataset = newData
 
     @property
     def delete_colum(self)-> list[str]:
@@ -106,10 +112,14 @@ class ConditionData:
         for i in self.__actuell.keys():
             self.__actuell[i] = False
 
-    def create_conditionData(self, indicator_2half ='matchPeriod' , des_2haf='2H',startx= "pos_orig_x" , starty= "pos_orig_y", endx= "pos_dest_x", endy = "pos_dest_y"):
+    def create_conditionData(self, indicator_2half ='matchPeriod' , des_2haf='2H',startx= "pos_orig_x" , starty= "pos_orig_y", endx= "pos_dest_x", endy = "pos_dest_y", read_again_csv = True):
         """Creats a dataset only with the row who fulfills the conditions"""
         self.__actuell["dataset"]=True
-        data_begin = pd.read_csv(self.dataset_link)
+        
+        data_begin = self.__dataset
+        if read_again_csv:
+            data_begin = pd.read_csv(self.dataset_link)
+
         data_condition = data_begin[data_begin.apply(lambda row: all(cond(row) for cond in self.conditions), axis=1)]
 
         if self.flip_sec_half_coordinates:
