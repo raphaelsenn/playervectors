@@ -1,8 +1,8 @@
 import pandas as pd
 import ast
-import ConditionData as CData
+import src.ConditionData as CData
 import numpy as np
-import playervectors as playVec
+import src.playervectors as playVec
 import matplotlib.pyplot as plt
 def ExtractPlayers(df: pd.DataFrame,
                    wy_id: str,
