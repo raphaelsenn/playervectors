@@ -1,4 +1,4 @@
-import playervectors as player
+import src.playervectors as player
 import pandas as pd
 from dataclasses import dataclass,field,InitVar
 from typing import Callable,Any
