@@ -41,32 +41,22 @@ class PlayerVectors:
         self.action_M = {}
         self.action_W = {}
         self.action_H = {}
-    
-    def fit(self,
-            coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
-            minutes_played: dict[int, int],
+
+    def count_norm_smooth(self, coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
+            actions: list[str],
             player_names: dict[int, str],
-            verbose: bool=False) -> None:
+            minutes_played: dict[int, int]) -> dict:
         """
-        Fit data to playervectors 
-        
-        Parameters:
-        -----------
-
-
-
-        """
-        # --------------------------------------------------------------------
-        # 1. Selecting Relevant Action Types 
-        # Done, when PlayerVectors object is created.
+        cns: Counting + Normalizing + Smoothing 
+        """ 
         
         # --------------------------------------------------------------------
-        # 2. Constructing Heatmaps 
+        # Constructing Heatmaps 
         
         # Mapping of player IDs to a list of heatmaps for their respective actions
         # i.e. 43 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass], 54 -> [heatmap_shot, ...]
         player_heatmaps = {}
-        for action in self.actions:
+        for action in actions:
             for playerID, coordinates_xy in list(coordinates[action].items()):
                 if playerID not in player_heatmaps:
                     player_heatmaps[playerID] = [] 
@@ -93,11 +83,12 @@ class PlayerVectors:
 
                 # 1 - 3: Counting + Normalizing + Smoothing
                 heatmap.fit(x, y, minutes)
-                player_heatmaps[playerID].append(heatmap.heatmap_)
+                player_heatmaps[playerID].append(heatmap.heatmap_) 
+        return player_heatmaps
 
-        
+    def reshaping(self, player_heatmaps: dict) -> dict:
         # --------------------------------------------------------------------
-        # (3): Compressing Heatmaps to Vectors
+        # Reshaping Heatmaps to Vectors + Construction of Matrix M
 
         # Mapping each action type to its corresponding matrix (M_action)
         # i.e. shot -> M_shot, cross -> M_cross, dirbble -> M_dribble, pass -> M_pass
@@ -107,9 +98,8 @@ class PlayerVectors:
         # i.e. shot -> [34, 234, 232, ... list of player_ids for action shot], cross -> [454, 643, ...]
         action_to_player = {action: [] for action in self.actions}
 
-        # (3.1): Reshaping
+        # Reshaping
         for playerID, list_heatmaps in player_heatmaps.items():
-            num_players = len(player_heatmaps)
             
             # list_heatmaps of structure: [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass]
             for action_index, X in enumerate(list_heatmaps):
@@ -122,16 +112,19 @@ class PlayerVectors:
                 # Save corresponding player_ids
                 action_to_player[self.actions[action_index]].append(playerID)
 
-        # (3.2): Construction of matrix M:
+        # Construction of matrix M:
         for action in action_to_matrix:
             M = np.array(action_to_matrix[action])
             # M = M.reshape(self.grid[0] * self.grid[1], len(M))
             M = M.reshape(len(M), self.grid[0] * self.grid[1]).T 
             action_to_matrix[action] = M
+        return action_to_matrix, action_to_player
 
+    def compress(self,
+                 action_to_matrix: dict,
+                 verbose: bool=False) -> dict:
         # -----------------------------------------------------------------------------
-        # (3.3): Compress matrix M by applying non-negative matrix factorization (NMF)
-        # -----------------------------------------------------------------------------
+        # Compress matrix M by applying non-negative matrix factorization (NMF)
 
         # Dictionary to store the resulting feature vectors for each action type
         # i.e. shot -> []
@@ -158,13 +151,15 @@ class PlayerVectors:
             self.action_W[action] = W
             self.action_H[action] = H
  
-
             if verbose:
                 print(f'Action: {action}\tShape of M: {M.shape}\tShape of W: {W.shape}\tShape of H: {H.shape}')
+        return actions_to_vectors
 
-
+    def assemble(self,
+                 actions_to_vectors: dict,
+                 action_to_player: dict) -> dict:
         # ------------------------------------------------------
-        # (4): Assemble Player Vectors
+        # Assemble Player Vectors
 
         # Mapping player'ids to corresponding 18-component player vector
         player_to_vector = {}
@@ -175,8 +170,64 @@ class PlayerVectors:
                 if playerID not in player_to_vector:
                     player_to_vector[playerID] = []
                 player_to_vector[playerID].extend(vector.flatten())
+        return player_to_vector
+
+    def fit(self,
+            coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
+            minutes_played: dict[int, int],
+            player_names: dict[int, str],
+            verbose: bool=False) -> None:
+        """
+        Fit data to playervectors 
         
-        self.player_vectors = player_to_vector
+        Parameters:
+        -----------
+        
+        
+        Variables: 
+        -----------
+        player_heatmaps : dict[int, list[np.ndarray]]
+            Mapping of player IDs to a list of heatmaps for their respective actions
+            i.e. 43 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass], 54 -> [heatmap_shot, ...] 
+        
+        action_to_matrix : dict[str, np.ndarray]
+            Mapping each action type to its corresponding matrix (M_action)
+            i.e. shot -> M_shot, cross -> M_cross, dirbble -> M_dribble, pass -> M_pass
+        
+        action_to_player : dict[str, list[int]]
+            Store corresponding player IDs
+            i.e. shot -> [34, 234, 232, ... list of player_ids for action shot], cross -> [454, 643, ...]
+        
+        actions_to_vector : dict[str, np.ndarray] 
+            Dictionary to store the resulting feature vectors for each action type
+            i.e. shot -> []
+
+        self.player_vectors : dict[int, np.ndarray]
+            Mapping player'ids to corresponding 18-component player vector
+        """
+        # --------------------------------------------------------------------
+        # 1. Selecting Relevant Action Types 
+        # Done, when PlayerVectors object is created.
+        
+        # --------------------------------------------------------------------
+        # 2. Constructing Heatmaps (Counting + Normalizing + Smoothing)
+        player_heatmaps = self.count_norm_smooth(coordinates,
+                                                 self.actions,
+                                                 player_names,
+                                                 minutes_played)
+        
+        # --------------------------------------------------------------------
+        # (3): Compressing Heatmaps to Vectors
+        action_to_matrix, action_to_player = self.reshaping(player_heatmaps)
+
+        # -----------------------------------------------------------------------------
+        # (3.3): Compress matrix M by applying non-negative matrix factorization (NMF)
+        actions_to_vectors = self.compress(action_to_matrix, verbose=verbose)
+ 
+
+        # ------------------------------------------------------
+        # (4): Assemble Player Vectors
+        self.player_vectors = self.assemble(actions_to_vectors, action_to_player)
 
     def plot_principle_components(self,
                                   figsize: tuple[int, int]=(20, 40)) -> plt.plot:
