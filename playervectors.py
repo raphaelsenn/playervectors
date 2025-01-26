@@ -47,7 +47,11 @@ class PlayerVectors:
             player_names: dict[int, str],
             minutes_played: dict[int, int]) -> dict:
         """
-        cns: Counting + Normalizing + Smoothing 
+        1. Counting: 
+            Counting We overlay a grid of size (m x n) on the soccer field.
+            Per grid cell X[i][j] , we count the number of actions that started in that cell.
+
+        2. Normalizing:
         """ 
         
         # --------------------------------------------------------------------
@@ -103,14 +107,15 @@ class PlayerVectors:
             
             # list_heatmaps of structure: [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass]
             for action_index, X in enumerate(list_heatmaps):
-                # Reshaping heatmap of shape (m, n) to vector of shape (n * m, 1) 
-                X_reshape = X.reshape(self.grid[0] * self.grid[1], 1)
-                
-                # Store reshaped heatmap and corresponding player ID
-                action_to_matrix[self.actions[action_index]].append(X_reshape)
-                
-                # Save corresponding player_ids
-                action_to_player[self.actions[action_index]].append(playerID)
+                if len(list_heatmaps) == len(self.components): 
+                    # Reshaping heatmap of shape (m, n) to vector of shape (n * m, 1) 
+                    X_reshape = X.reshape(self.grid[0] * self.grid[1], 1)
+                    
+                    # Store reshaped heatmap and corresponding player ID
+                    action_to_matrix[self.actions[action_index]].append(X_reshape)
+                    
+                    # Save corresponding player_ids
+                    action_to_player[self.actions[action_index]].append(playerID)
 
         # Construction of matrix M:
         for action in action_to_matrix:
@@ -251,6 +256,7 @@ class PlayerVectors:
                 W_k = W.T[k].reshape(self.grid[0], self.grid[1])
                 sns.heatmap(W_k, ax=axes[n])
                 axes[n].set_title(f'Component {n + 1} ({action})')
+                axes[n].set_xlabel('Attack -->') 
                 n += 1
 
         # Adjust layout to avoid overlap
@@ -267,7 +273,6 @@ class PlayerHeatMap:
     def __init__(self,
                  shape: tuple[int, int]=(50, 50),
                  map_size: tuple[tuple[int, int], tuple[int, int]] = ((0, 100), (0, 100)),
-                 n_components: int=1,
                  sigma: float = 1.0,
                  player_name: str | None=None,
                  player_id: int | None=None,
@@ -278,10 +283,9 @@ class PlayerHeatMap:
         __________
         shape : tuple[int, int]
             resolution of heatmap matrix
-        map_size: tuple[tuple[int, int], tuple[int, int]]
+        
+        map_size : tuple[tuple[int, int], tuple[int, int]]
             Dimension of heatmap matrix
-        n_components : int
-            Components for NMF
         
         sigma : float
             Parameter for gaussian_filter
@@ -298,27 +302,20 @@ class PlayerHeatMap:
         action_id : int
             ID for action 
         """ 
+        # Parameters 
         self.shape_ = shape
         self.map_size = map_size
-        self.components = n_components
         self.sigma = sigma
         self.player_id = player_id
         self.action_id = action_id
+        
+        # Member variables 
         self.raw_counts_ = np.zeros(shape=self.shape_, dtype=np.int16)
         self.normed_counts_ = np.zeros(shape=self.shape_, dtype=np.float16)
         self.heatmap_ = np.zeros(shape=self.shape_, dtype=np.float16)
-        self.weights_ = None
-
-        # Decode bytes to string, or handle strings as-is
-        if isinstance(player_name, bytes):
-            self.player_name = player_name.decode('utf-8')
-        else:
-            self.player_name = player_name
-
-        if isinstance(action_name, bytes):
-            self.action_name = action_name.decode('utf-8')
-        else:
-            self.action_name = action_name
+        
+        self.player_name = player_name
+        self.action_name = action_name
 
     def fit(self, x: np.ndarray | list[int],
             y: np.ndarray | list[int],
