@@ -1,5 +1,6 @@
 import numpy as np
 import seaborn as sns
+import pandas as pd
 import warnings
 import math
 import matplotlib.pyplot as plt
@@ -20,7 +21,8 @@ class PlayerVectors:
                  shape: tuple[int, int] = (50, 50), 
                  sigma: float=3.0,
                  actions: list[str] = ['shot', 'cross', 'dribble', 'pass'],
-                 components: list[int] =[4, 4, 5, 5]
+                 components: list[int] =[4, 4, 5, 5],
+                 init_nmf: str='nndsvd', 
                  ) -> None:
         """
         Parameters:
@@ -50,15 +52,17 @@ class PlayerVectors:
         # ---------------------------------------------------------------------
         # Hyperparameters NMF:
         # ---------------------------------------------------------------------
-        self.init_nmf = 'nndsvd'
+        self.init_nmf = init_nmf
         self.max_iter_nmf = 500
         self.random_nmf = 42
         self.loss_nmf = 'frobenius'
         
         # ---------------------------------------------------------------------
-        # Mapping player'ids to corresponding k-component player vector
+        # Membervariables: 
         # ---------------------------------------------------------------------
+        # Mapping player'ids to corresponding k-component player vector
         self.player_vectors = {}
+        self.player_names = {} 
         self.action_M = {}
         self.action_W = {}
         self.action_H = {}
@@ -131,35 +135,37 @@ class PlayerVectors:
         3. Smoothing:
             To promote smoothness in the counts of nearby cells, a Gaussian blur is applied to matrix
         """ 
+        self.player_names = player_names
         player_heatmaps: dict[int, list[np.ndarray]] = {}
-        for action in actions:
-            for playerID, coordinates_xy in list(coordinates[action].items()):
-                if playerID not in player_heatmaps:
-                    player_heatmaps[playerID] = [] 
+        for action_index, action in enumerate(actions):
+            for player_id, coordinates_xy in list(coordinates[action].items()):
+                if player_id not in player_heatmaps:
+                        player_heatmaps[player_id] = [np.zeros(self.grid) for _ in range(len(actions))]
+                    # player_heatmaps[playerID] = []
                 
                 x, y = coordinates_xy[0], coordinates_xy[1] 
 
                 # Check for played minutes 
                 minutes = 0.0 
-                if playerID in minutes_played: 
-                    minutes = minutes_played[playerID] 
+                if player_id in minutes_played: 
+                    minutes = minutes_played[player_id] 
 
                 # Check for player name
                 player_name = None
-                if playerID in player_names:
-                    player_name = player_names[playerID]
+                if player_id in player_names:
+                    player_name = player_names[player_id]
 
                 # Build Player-Vectors
                 heatmap = PlayerHeatMap(shape=self.grid,
                                         player_name=player_name,
-                                        player_id=playerID,
+                                        player_id=player_id,
                                         action_name=action,
                                         sigma=self.sigma,
-                                        map_size=[[0, 100], [0, 100]])
+                                        map_size=[[0, 105], [0, 105]])
 
                 # 1 - 3: Counting + Normalizing + Smoothing
                 heatmap.fit(x, y, minutes)
-                player_heatmaps[playerID].append(heatmap.heatmap_) 
+                player_heatmaps[player_id][action_index] = heatmap.heatmap_
         return player_heatmaps
 
     def reshaping(self,
@@ -198,15 +204,15 @@ class PlayerVectors:
             
             # list_heatmaps of structure: [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass]
             for action_index, X in enumerate(list_heatmaps):
-                if len(list_heatmaps) == len(self.components): 
-                    # Reshaping heatmap of shape (m, n) to vector of shape (n * m, 1) 
-                    X_reshape = X.reshape(self.grid[0] * self.grid[1], 1)
-                    
-                    # Store reshaped heatmap and corresponding player ID
-                    action_to_matrix[self.actions[action_index]].append(X_reshape)
-                    
-                    # Save corresponding player_ids
-                    action_to_player[self.actions[action_index]].append(playerID)
+
+                # Reshaping heatmap of shape (m, n) to vector of shape (n * m, 1) 
+                X_reshape = X.reshape(self.grid[0] * self.grid[1], 1)
+
+                # Store reshaped heatmap and corresponding player ID
+                action_to_matrix[self.actions[action_index]].append(X_reshape)
+
+                # Save corresponding player_ids
+                action_to_player[self.actions[action_index]].append(playerID)
 
         # Construction of matrix M:
         for action in action_to_matrix:
@@ -440,7 +446,30 @@ class PlayerVectors:
         plt.tight_layout()
 
         return fig  # Return the figure object
+ 
+    def plot_boxplot_distribution(self,
+                                  figsize: tuple[int, int]=(16, 8)) -> plt.plot:
+        """
+        Visualize Principal Components of Player Vector 
+        
+        Parameters:
+        ----------- 
+        
+        Variables:
+        ----------
 
+        Returns:
+        ------- 
+        """  
+        weights = [player_vector for id, player_vector in self.player_vectors.items() if len(player_vector) == 18 and id in self.player_names]
+        data = pd.DataFrame(weights, columns=[n for n in range(1, 19)])
+
+        plt.figure(figsize=(16, 8))
+        plt.title('Boxplot Weight Distribution')
+        sns.boxplot(data=data)
+        plt.xlabel('Components')
+        plt.ylabel('Weights')
+        return plt.gcf()
 
 class PlayerHeatMap:
     """
