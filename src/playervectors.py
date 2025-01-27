@@ -9,33 +9,51 @@ from sklearn.decomposition import NMF
 
 class PlayerVectors:
     """
-    A class to fit a playervectors to a soccer-player with actions event stream data
+    Given:
+        - Event stream data describing actions of player p 
+    
+    Build: 
+        - A fixed-size player vector that characterizes player's p playing style and
+        can be interpreted both by human analysts and machine learning systems. 
     """ 
     def __init__(self,
                  shape: tuple[int, int] = (50, 50), 
                  sigma: float=1.0,
                  actions: list[str] = ['shot', 'cross', 'dribble', 'pass'],
-                 components: list[int] =[4, 4, 5, 5],
-                 init_nmf: str='nndsvd',
-                 max_iter_nmf: int=500,
-                 random_nmf: int=42,
-                 loss_nmf: str='frobenius') -> None:
+                 components: list[int] =[4, 4, 5, 5]
+                 ) -> None:
         """
         Parameters:
         -----------
-        """
+        shape : tuple[int, int] 
+            Shape of the grid on the soccer field for counting actions. 
+        
+        sigma : float
+            Smoothness parameter for gaussian blur.
+        
+        actions : list[str]
+            Names of action types the Player Vectors should be build on.
+        
+        components : list[str] 
+            Number of components for each action.
 
-        # ------------------------------------------------------
+        NOTE: len(actions) == len(components)
+        """
+        # ---------------------------------------------------------------------
         # Hyperparameters:
         self.grid = shape
         self.sigma = sigma
         self.actions = actions
         self.components = components
-        self.init_nmf = init_nmf
-        self.max_iter = max_iter_nmf
-        self.random_nmf = random_nmf
-        self.loss_nmf = loss_nmf
 
+        # ---------------------------------------------------------------------
+        # Hyperparameters NMF:
+        self.init_nmf = 'nndsvd'
+        self.max_iter_nmf = 500
+        self.random_nmf = 42
+        self.loss_nmf = 'frobenius'
+        
+        # ---------------------------------------------------------------------
         # Mapping player'ids to corresponding k-component player vector
         self.player_vectors = {}
         self.action_M = {}
@@ -45,20 +63,62 @@ class PlayerVectors:
     def count_norm_smooth(self, coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
             actions: list[str],
             player_names: dict[int, str],
-            minutes_played: dict[int, int]) -> dict:
+            minutes_played: dict[int, int]
+            ) -> dict:
         """
+        Parameters:
+        -----------
+        coordinates : dict[str, dict[int, tuple[list[int], list[int]]]]
+            Mapping action's to a dictionary which maps player_id to a tuple of lists with x,y coordinates.
+
+            E.g.
+            'shot' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
+                       player2 -> ([x1, x2, ...], [y1, y2, ...]),
+                       player3 -> ...}, ...},
+            
+            'cross' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
+                        player2 -> ([x1, x2, ...], [y1, y2, ...]),
+                        player3 -> ...}, ...}.
+            
+            'dribble' -> {...},
+            ... 
+
+        actions : list[str]
+            Names of action types the Player Vectors should be build on.
+
+        player_names : dict[int, str]
+            Mapping player_id to player_name.
+
+        minutes_played: dict[int, int]
+            Mapping player_id to played played minutes (for entire season)
+
+        Variables: 
+        -----------
+        player_heatmaps : dict[int, list[np.ndarray]] 
+            Mapping player_id's to a list of heatmaps for their respective actions.
+            
+            E.g. assume we selected actions: shot, cross, dribble and pass, then:
+                
+                player_1 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass],
+                player_2 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass],
+                player_3 -> [heatmap_shot, ...], ...
+
+        How it works:
+        -----------
         1. Counting: 
-            Counting We overlay a grid of size (m x n) on the soccer field.
+            We overlay a grid of size (m x n) on the soccer field.
             Per grid cell X[i][j] , we count the number of actions that started in that cell.
 
         2. Normalizing:
+            Two players p1 and p2 can have an identical playing style,
+            but if player p1 played more minutes than player p2, then player p1's matrix
+            X_p1 will contain higher raw counts than the matrix X_p2 of player p2.
+            To combat this, we normalize X such that each cell contains its count if p had played 90 minutes 
+
+        3. Smoothing:
+            To promote smoothness in the counts of nearby cells, a Gaussian blur is applied to matrix
         """ 
         
-        # --------------------------------------------------------------------
-        # Constructing Heatmaps 
-        
-        # Mapping of player IDs to a list of heatmaps for their respective actions
-        # i.e. 43 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass], 54 -> [heatmap_shot, ...]
         player_heatmaps = {}
         for action in actions:
             for playerID, coordinates_xy in list(coordinates[action].items()):
@@ -90,7 +150,9 @@ class PlayerVectors:
                 player_heatmaps[playerID].append(heatmap.heatmap_) 
         return player_heatmaps
 
-    def reshaping(self, player_heatmaps: dict) -> dict:
+    def reshaping(self,
+                  player_heatmaps: dict[int, list[np.ndarray]]
+                  ) -> dict:
         # --------------------------------------------------------------------
         # Reshaping Heatmaps to Vectors + Construction of Matrix M
 
@@ -142,7 +204,7 @@ class PlayerVectors:
             model = NMF(n_components=self.components[i],
                         init=self.init_nmf,
                         random_state=self.random_nmf,
-                        max_iter=self.max_iter) 
+                        max_iter=self.max_iter_nmf) 
 
             # Factorizing M: M ≈ W @ H
             W = model.fit_transform(M)
@@ -183,17 +245,50 @@ class PlayerVectors:
             player_names: dict[int, str],
             verbose: bool=False) -> None:
         """
-        Fit data to playervectors 
-        
+        Given:
+            Event stream data describing actions of player p 
+    
+        Fit: 
+            A fixed-size player vector that characterizes player's p playing style and
+            can be interpreted both by human analysts and machine learning systems. 
+
         Parameters:
         -----------
         
-        
+        coordinates : dict[str, dict[int, tuple[list[int], list[int]]]]
+            Mapping action's to a dictionary which maps player_id to a tuple of lists with x,y coordinates.
+
+            E.g.
+            'shot' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
+                       player2 -> ([x1, x2, ...], [y1, y2, ...]),
+                       player3 -> ...}, ...},
+            
+            'cross' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
+                        player2 -> ([x1, x2, ...], [y1, y2, ...]),
+                        player3 -> ...}, ...}.
+            
+            'dribble' -> {...},
+            ...  
+
+        player_names : dict[int, str]
+            Mapping player_id to player_name.
+
+        minutes_played: dict[int, int]
+            Mapping player_id to played played minutes (for entire season)        
+
+        verbose : bool
+            Printing information while training
+
         Variables: 
         -----------
-        player_heatmaps : dict[int, list[np.ndarray]]
-            Mapping of player IDs to a list of heatmaps for their respective actions
-            i.e. 43 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass], 54 -> [heatmap_shot, ...] 
+        player_heatmaps : dict[int, list[np.ndarray]] 
+            Mapping player_id's to a list of heatmaps for their respective actions.
+            
+            E.g. assume we selected actions: shot, cross, dribble and pass, then:
+                
+                player_1 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass],
+                player_2 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass],
+                player_3 -> [heatmap_shot, ...], ... 
         
         action_to_matrix : dict[str, np.ndarray]
             Mapping each action type to its corresponding matrix (M_action)
