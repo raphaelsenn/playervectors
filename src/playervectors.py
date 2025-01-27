@@ -18,17 +18,17 @@ class PlayerVectors:
     """ 
     def __init__(self,
                  shape: tuple[int, int] = (50, 50), 
-                 sigma: float=1.0,
+                 sigma: float=3.0,
                  actions: list[str] = ['shot', 'cross', 'dribble', 'pass'],
                  components: list[int] =[4, 4, 5, 5]
                  ) -> None:
         """
         Parameters:
         -----------
-        shape : tuple[int, int] 
+        shape : tuple[int, int], default=(50, 50)
             Shape of the grid on the soccer field for counting actions. 
         
-        sigma : float
+        sigma : float, default=3.0
             Smoothness parameter for gaussian blur.
         
         actions : list[str]
@@ -41,6 +41,7 @@ class PlayerVectors:
         """
         # ---------------------------------------------------------------------
         # Hyperparameters:
+        # ---------------------------------------------------------------------
         self.grid = shape
         self.sigma = sigma
         self.actions = actions
@@ -48,6 +49,7 @@ class PlayerVectors:
 
         # ---------------------------------------------------------------------
         # Hyperparameters NMF:
+        # ---------------------------------------------------------------------
         self.init_nmf = 'nndsvd'
         self.max_iter_nmf = 500
         self.random_nmf = 42
@@ -55,21 +57,26 @@ class PlayerVectors:
         
         # ---------------------------------------------------------------------
         # Mapping player'ids to corresponding k-component player vector
+        # ---------------------------------------------------------------------
         self.player_vectors = {}
         self.action_M = {}
         self.action_W = {}
         self.action_H = {}
 
-    def count_norm_smooth(self, coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
+    def count_norm_smooth(self,
+            coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
             actions: list[str],
             player_names: dict[int, str],
             minutes_played: dict[int, int]
             ) -> dict:
         """
+        Counting, Normalizing and Smoothing. 
+        
         Parameters:
         -----------
         coordinates : dict[str, dict[int, tuple[list[int], list[int]]]]
-            Mapping action's to a dictionary which maps player_id to a tuple of lists with x,y coordinates.
+            Mapping action's to a dictionary,
+            which maps player_id to a tuple of lists with x,y coordinates.
 
             E.g.
             'shot' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
@@ -96,6 +103,11 @@ class PlayerVectors:
         -----------
         player_heatmaps : dict[int, list[np.ndarray]] 
             Mapping player_id's to a list of heatmaps for their respective actions.
+
+        Returns:
+        --------
+        dict[int, list[np.ndarray]] 
+            Mapping player_id's to a list of heatmaps for their respective actions.
             
             E.g. assume we selected actions: shot, cross, dribble and pass, then:
                 
@@ -103,8 +115,9 @@ class PlayerVectors:
                 player_2 -> [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass],
                 player_3 -> [heatmap_shot, ...], ...
 
-        How it works:
-        -----------
+
+        NOTE how it works:
+        -------------------
         1. Counting: 
             We overlay a grid of size (m x n) on the soccer field.
             Per grid cell X[i][j] , we count the number of actions that started in that cell.
@@ -118,8 +131,7 @@ class PlayerVectors:
         3. Smoothing:
             To promote smoothness in the counts of nearby cells, a Gaussian blur is applied to matrix
         """ 
-        
-        player_heatmaps = {}
+        player_heatmaps: dict[int, list[np.ndarray]] = {}
         for action in actions:
             for playerID, coordinates_xy in list(coordinates[action].items()):
                 if playerID not in player_heatmaps:
@@ -152,10 +164,27 @@ class PlayerVectors:
 
     def reshaping(self,
                   player_heatmaps: dict[int, list[np.ndarray]]
-                  ) -> dict:
-        # --------------------------------------------------------------------
-        # Reshaping Heatmaps to Vectors + Construction of Matrix M
+                  ) -> tuple[dict[str, np.ndarray], dict[str, list[int]]]:
+        """
+        Reshaping Heatmaps to Vectors and Construction of the Matrix M.
 
+        Parameters:
+        -----------
+        player_heatmaps : dict[int, list[np.ndarray]]
+            Mapping player_id's to a list of heatmaps for their respective actions.
+ 
+        Variables:
+        ---------- 
+        action_to_matrix : dict[int, list[np.ndarray]] 
+            Mapping each action type to its corresponding matrix (M_action)
+
+        action_to_player : dict[int, list[int]]
+            Store corresponding player IDs
+        
+        Returns:
+        --------
+            tuple[dict[str, np.ndarray], dict[str, list[int]]]
+        """ 
         # Mapping each action type to its corresponding matrix (M_action)
         # i.e. shot -> M_shot, cross -> M_cross, dirbble -> M_dribble, pass -> M_pass
         action_to_matrix = {action: [] for action in self.actions}
@@ -190,6 +219,25 @@ class PlayerVectors:
     def compress(self,
                  action_to_matrix: dict,
                  verbose: bool=False) -> dict:
+        """
+        Compress matrix M by applying non-negative matrix factorization (NMF) for each action type.
+        
+        Parameters:
+        -----------
+        action_to_matrix : dict[int, list[np.ndarray]] 
+            Mapping each action type to its corresponding matrix (M_action)
+        
+        verbose : bool, default=False
+            Printing information while fitting.
+
+        Variables:
+        ----------
+
+        Returns:
+        -------
+        
+        """ 
+        
         # -----------------------------------------------------------------------------
         # Compress matrix M by applying non-negative matrix factorization (NMF)
 
@@ -225,6 +273,19 @@ class PlayerVectors:
     def assemble(self,
                  actions_to_vectors: dict,
                  action_to_player: dict) -> dict:
+        
+        """
+        Assemble Player Vectors
+
+        Parameters:
+        ----------- 
+        
+        Variables:
+        ----------
+
+        Returns:
+        ------- 
+        """ 
         # ------------------------------------------------------
         # Assemble Player Vectors
 
@@ -304,33 +365,54 @@ class PlayerVectors:
 
         self.player_vectors : dict[int, np.ndarray]
             Mapping player'ids to corresponding 18-component player vector
+        
+        Returns:
+        --------
+        None
         """
-        # --------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # 1. Selecting Relevant Action Types 
+        # ---------------------------------------------------------------------
         # Done, when PlayerVectors object is created.
         
-        # --------------------------------------------------------------------
+        # ---------------------------------------------------------------------
         # 2. Constructing Heatmaps (Counting + Normalizing + Smoothing)
+        # ---------------------------------------------------------------------
         player_heatmaps = self.count_norm_smooth(coordinates,
                                                  self.actions,
                                                  player_names,
                                                  minutes_played)
         
-        # --------------------------------------------------------------------
-        # (3): Compressing Heatmaps to Vectors
+        # ---------------------------------------------------------------------
+        # (3): Reshaping Heatmaps to Vectors
+        # ---------------------------------------------------------------------
         action_to_matrix, action_to_player = self.reshaping(player_heatmaps)
 
-        # -----------------------------------------------------------------------------
-        # (3.3): Compress matrix M by applying non-negative matrix factorization (NMF)
+        # ---------------------------------------------------------------------
+        # (3.x): Compress matrices M by apply non-negative matrix factorization
+        # ---------------------------------------------------------------------
         actions_to_vectors = self.compress(action_to_matrix, verbose=verbose)
  
 
-        # ------------------------------------------------------
+        # ---------------------------------------------------------------------
         # (4): Assemble Player Vectors
+        # ---------------------------------------------------------------------
         self.player_vectors = self.assemble(actions_to_vectors, action_to_player)
 
     def plot_principle_components(self,
                                   figsize: tuple[int, int]=(20, 40)) -> plt.plot:
+        """
+        Visualize Principal Components of Player Vector 
+        
+        Parameters:
+        ----------- 
+        
+        Variables:
+        ----------
+
+        Returns:
+        ------- 
+        """ 
         total_components = sum(self.components)
 
         # Determine the number of rows, ensuring it's an integer
@@ -397,18 +479,21 @@ class PlayerHeatMap:
         action_id : int
             ID for action 
         """ 
-        # Parameters 
+        # ---------------------------------------------------------------------
+        # Parameters: 
+        # ---------------------------------------------------------------------
         self.shape_ = shape
         self.map_size = map_size
         self.sigma = sigma
         self.player_id = player_id
         self.action_id = action_id
         
-        # Member variables 
+        # ---------------------------------------------------------------------
+        # Member variables:
+        # ---------------------------------------------------------------------
         self.raw_counts_ = np.zeros(shape=self.shape_, dtype=np.int16)
         self.normed_counts_ = np.zeros(shape=self.shape_, dtype=np.float16)
         self.heatmap_ = np.zeros(shape=self.shape_, dtype=np.float16)
-        
         self.player_name = player_name
         self.action_name = action_name
 
