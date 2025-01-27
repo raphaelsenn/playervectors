@@ -2,7 +2,6 @@ import pandas as pd
 import ast
 import src.ConditionData as CData
 import numpy as np
-import src.playervectors as playVec
 import matplotlib.pyplot as plt
 def ExtractPlayers(df: pd.DataFrame,
                    wy_id: str,
@@ -109,8 +108,69 @@ def outside_flip_coor(match_diretion_filp: dict):
                 dataset.iloc[i]["pos_dest_x"] = 100- dataset.iloc[i]["pos_dest_x"] 
         return dataset
     return flip_coor
+def get_number(str_input, start:int = 0):
+    str_to_int = ""
+    index= start
+    break_var = False
+    while True:
+        if index>=len(str_input):
+            return None
+        if str_input[index] in "0123456789":
+            str_to_int+=str_input[index]
+            break_var =True
+        elif break_var:
+            break
+        index+=1
+    return int(str_to_int)
+def get_abc(str_input:str, start:int = 0):
+    str_new = ""
+    index= start
+    break_var = False
+    while True:
+        if index>=len(str_input):
+            return None
+        if str_input[index].isalpha():
+            str_new+=str_input[index]
+            break_var =True
+        elif break_var:
+            break
+        index+=1
+    return str_new
+def get_home_side(match_to_home):# dict[int, set[list[tuple[str,int]], int, str]]):
+    def inside_get_home_side(dataset:pd.DataFrame)-> pd.DataFrame:
+        for i in range(len(dataset["teamsData"])):
+            teams_data: str = dataset.iloc[i]["teamsData"]
+            tm = "'side': '"
+            side_team1 =dataset.iloc[i]["team1.side"]#get_abc( teams_data,teams_data.find(tm)+len(tm))
+            side_team2 =dataset.iloc[i]["team2.side"]#get_abc( teams_data[teams_data.find(tm)+len(tm):],teams_data.find(tm))
+            
+            team_id1 =dataset.iloc[i]["team1.teamId"] #get_number(teams_data,teams_data.find("teamId"))
+            #team2_str :str= teams_data[team_id1+len("teamId"):]
+            team_id2 =dataset.iloc[i]["team2.teamId"]# get_number(team2_str,team2_str.find("teamId"))
+            match_to_home[(dataset.iloc[i]["label"], int(dataset.iloc[i]["gameweek"]))] =[ (team_id1,side_team1), (team_id2, side_team2)]
+        return dataset 
+            # subteam =teams_data[ teams_data.find("lineup")+7:]
+            # bench:list=subteam.find( "bench" )
+            # firstteam = subteam[:bench]
+            # lineup :list = firstteam.find("lineup")
+            # secondteam = subteam[bench: lineup]
+            # tmp_str = firstteam+secondteam
+            # find_id = tmp_str.find("playerId")
+            # while find_id !=-1:
+                
+            #     get_number(tmp_str, find_id)
+            #     find_id = tmp_str.find("playerId", start=find_id)
+                
 
+
+    return inside_get_home_side
 if __name__ == "__main__":
+    dict_kontext={}
+    func1 = get_home_side(dict_kontext)
+    cdata_match_kontex = CData.ConditionData("test1", [],[func1],[], "../data/matche_Germany") 
+    cdata_match_kontex.create_conditionData() 
+    print(dict_kontext)
+if __name__ == "__main__" and False:
     data = pd.read_csv(filepath_or_buffer= "data/players.csv", sep=",")
     print(len(ExtractGoalkeepers(data).keys()))
     empyt_dict ={}
