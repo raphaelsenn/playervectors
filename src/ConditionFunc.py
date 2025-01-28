@@ -175,8 +175,8 @@ def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,in
                 team1_winner ="lose"
                 team2_winner ="win"
             elif team1__score==team2__score:
-                team1__score = "tie"
-                team2__score = "tie"
+                team1_winner = "tie"
+                team2_winner = "tie"
 
 
 
