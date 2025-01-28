@@ -1,9 +1,6 @@
 import pandas as pd
 import ast
-import src.ConditionData as CData
-import numpy as np
-import src.playervectors as playVec
-import matplotlib.pyplot as plt
+from typing import  Callable
 def ExtractPlayers(df: pd.DataFrame,
                    wy_id: str,
                    attributes: list[str]) -> dict[int, list]:
@@ -67,8 +64,12 @@ def ExtractGoalkeepers(df: pd.DataFrame,
             if player_ID not in goalkeepers:
                 goalkeepers[player_ID] = True
     return goalkeepers
-def get_directions(keepers, player: dict[int,dict[str,str|int]],  match_diretion_filp):
-
+def get_directions(keepers,   match_diretion_filp):
+    """
+    a wrapper that take an dict with only keepers 
+    and returns a func which stores in the dict:match_diretion_filp
+    as a key an bool if the coordinates (depending on match , team and half time) musst be flip
+    """
     def store_macthes_and_team_direction(dataset: pd.DataFrame)-> pd.DataFrame:
         for _, row in dataset.iterrows():
             player_id = row["playerId"]
@@ -83,6 +84,11 @@ def get_directions(keepers, player: dict[int,dict[str,str|int]],  match_diretion
     return store_macthes_and_team_direction
 
 def outside_player_to_dataframe(player_heatmap:dict[int,pd.DataFrame]):
+    """
+    a wrapper for a function which  creates a dict,
+    to  map  all player id to a data set which contains
+    only the action of the player
+    """
     def player_to_dataframe(dataset:pd.DataFrame):
         for i in range(len(dataset["playerId"])):
             player_id = dataset.loc[i, "playerId"]
@@ -98,7 +104,10 @@ def outside_player_to_dataframe(player_heatmap:dict[int,pd.DataFrame]):
     return player_to_dataframe
 
 def outside_flip_coor(match_diretion_filp: dict):
-
+    """
+    wrapper for a function that flips every coordinate in a data set 
+    depending if row has all attributes which corresponds to a key in dict: match_diretion_filp
+    """
 
     def flip_coor( dataset: pd.DataFrame)->pd.DataFrame:
         for i in range(len(dataset["pos_orig_y"])):
@@ -109,35 +118,72 @@ def outside_flip_coor(match_diretion_filp: dict):
                 dataset.iloc[i]["pos_dest_x"] = 100- dataset.iloc[i]["pos_dest_x"] 
         return dataset
     return flip_coor
+def get_number(str_input:str, start:int = 0):
+    """
+    gives you the first number in a string starting at index=start
+    """
+    str_to_int = ""
+    index= start
+    break_var = False
+    while True:
+        if index>=len(str_input):
+            return None
+        if str_input[index] in "0123456789":
+            str_to_int+=str_input[index]
+            break_var =True
+        elif break_var:
+            break
+        index+=1
+    return int(str_to_int)
+def get_abc(str_input:str, start:int = 0):
+    """
+    give you the first word in a string
+    (word is def as a string of letters)
+    """
+    str_new = ""
+    index= start
+    break_var = False
+    while True:
+        if index>=len(str_input):
+            return None
+        if str_input[index].isalpha():
+            str_new+=str_input[index]
+            break_var =True
+        elif break_var:
+            break
+        index+=1
+    return str_new
+def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,int]]])-> Callable[[pd.DataFrame],pd.DataFrame]:
+    """
+    is a wrapper for a funtion who stores in the dict you giva as argument
+    all machtid map to kontext parameters
 
-if __name__ == "__main__":
-    data = pd.read_csv(filepath_or_buffer= "data/players.csv", sep=",")
-    print(len(ExtractGoalkeepers(data).keys()))
-    empyt_dict ={}
-    player_dataframe ={}
+    """
+    def inside_get_match_context(dataset:pd.DataFrame)-> pd.DataFrame:
+        for i in range(len(dataset["teamsData"])):
 
-    func = get_directions(ExtractGoalkeepers(data),
-                          ExtractPlayers(df= data,  wy_id='wyId', attributes=['firstName', 'lastName', 'currentTeamId']),
-                            empyt_dict)
-    func2 = outside_flip_coor(empyt_dict)
 
-    func3 = outside_player_to_dataframe(player_dataframe)
-    con = CData.ConditionData(dataset_name="test",
-                              _dataset_link="data/example_data.csv",
-                               _conditions = [], 
-                               _rewrite=[func,func2, func3],
-                                 _delete_colum = [],
-                                 flip_sec_half_coordinates=False)
-    con.create_conditionData()
+            side_team1 =dataset.iloc[i]["team1.side"]
+            side_team2 =dataset.iloc[i]["team2.side"]
+            team_id1 =dataset.iloc[i]["team1.teamId"] 
+            team_id2 =dataset.iloc[i]["team2.teamId"]
+            team1__score = int(dataset.iloc[i]["team1.score"])
+            team2__score = int(dataset.iloc[i]["team2.score"])
+            team1_winner = "win"
+            team2_winner = "lose"
+            if team1__score<team2__score:
+                team1_winner ="lose"
+                team2_winner ="win"
+            elif team1__score==team2__score:
+                team1__score = "tie"
+                team2__score = "tie"
 
-    player_map= CData.ConditionData("heatmap", [],[],[],"")
-    player_map.dataset= player_dataframe[279772]
-    player_map.create_conditionData(read_again_csv=False)
-    print( player_map.dataset)
 
-    plt.figure(1, figsize=(12, 6))
-    player_map.fit("pos_orig_x", "pos_orig_y")
-    player_map.heatmap()
-    plt.show()
-    con.creat_file("data/Example")
 
+            match_to_home[int( dataset.iloc[i]["wyId"])] =[ 
+                (team_id1,side_team1, team1_winner,int(dataset.iloc[i]["gameweek"]), team1__score, get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId"))),
+                (team_id2,side_team2, team2_winner,int(dataset.iloc[i]["gameweek"]), team2__score, get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId")))]
+        return dataset 
+
+
+    return inside_get_match_context
