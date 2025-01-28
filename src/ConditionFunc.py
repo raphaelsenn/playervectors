@@ -127,7 +127,7 @@ def get_number(str_input:str, start:int = 0):
     break_var = False
     while True:
         if index>=len(str_input):
-            return None
+            return int(str_to_int) if str_to_int != "" else None
         if str_input[index] in "0123456789":
             str_to_int+=str_input[index]
             break_var =True
@@ -153,6 +153,13 @@ def get_abc(str_input:str, start:int = 0):
             break
         index+=1
     return str_new
+def get_all_player(str_input:str , to_find:str, start=0)-> list[int]:
+    index = str_input.find(to_find)
+    if index==-1:
+        return []
+    number = get_number(str_input, index)
+    return [number]+get_all_player(str_input[index+ len(to_find):], to_find)
+
 def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,int]]])-> Callable[[pd.DataFrame],pd.DataFrame]:
     """
     is a wrapper for a funtion who stores in the dict you giva as argument
@@ -162,28 +169,33 @@ def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,in
     def inside_get_match_context(dataset:pd.DataFrame)-> pd.DataFrame:
         for i in range(len(dataset["teamsData"])):
 
+            allplayersteam1 = get_all_player(dataset.iloc[i]["team1.formation.lineup"], "playerId")
+            allplayersteam2 = get_all_player(dataset.iloc[i]["team2.formation.lineup"], "playerId")
+            for player in allplayersteam1+allplayersteam2:
+                side_team1 =dataset.iloc[i]["team1.side"]
+                side_team2 =dataset.iloc[i]["team2.side"]
+                team_id1 =dataset.iloc[i]["team1.teamId"] 
+                team_id2 =dataset.iloc[i]["team2.teamId"]
+                team1__score = int(dataset.iloc[i]["team1.score"])
+                team2__score = int(dataset.iloc[i]["team2.score"])
+                team1_winner = "win"
+                team2_winner = "lose"
+                if team1__score<team2__score:
+                    team1_winner ="lose"
+                    team2_winner ="win"
+                elif team1__score==team2__score:
+                    team1_winner = "tie"
+                    team2_winner = "tie"
 
-            side_team1 =dataset.iloc[i]["team1.side"]
-            side_team2 =dataset.iloc[i]["team2.side"]
-            team_id1 =dataset.iloc[i]["team1.teamId"] 
-            team_id2 =dataset.iloc[i]["team2.teamId"]
-            team1__score = int(dataset.iloc[i]["team1.score"])
-            team2__score = int(dataset.iloc[i]["team2.score"])
-            team1_winner = "win"
-            team2_winner = "lose"
-            if team1__score<team2__score:
-                team1_winner ="lose"
-                team2_winner ="win"
-            elif team1__score==team2__score:
-                team1_winner = "tie"
-                team2_winner = "tie"
 
 
-
-            match_to_home[int( dataset.iloc[i]["wyId"])] =[ 
+            match_to_home[int( dataset.iloc[i]["wyId"])] =[
+                (player, team_id1 if player in allplayersteam1 else team_id2),
                 (team_id1,side_team1, team1_winner, team1__score,int(dataset.iloc[i]["gameweek"]), get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId"))),
                 (team_id2,side_team2, team2_winner,team2__score,int(dataset.iloc[i]["gameweek"]),  get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId")))]
         return dataset 
 
 
     return inside_get_match_context
+
+
