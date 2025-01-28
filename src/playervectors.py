@@ -217,7 +217,6 @@ class PlayerVectors:
         # Construction of matrix M:
         for action in action_to_matrix:
             M = np.array(action_to_matrix[action])
-            # M = M.reshape(self.grid[0] * self.grid[1], len(M))
             M = M.reshape(len(M), self.grid[0] * self.grid[1]).T 
             action_to_matrix[action] = M
         return action_to_matrix, action_to_player
@@ -359,11 +358,15 @@ class PlayerVectors:
         
         action_to_matrix : dict[str, np.ndarray]
             Mapping each action type to its corresponding matrix (M_action)
-            i.e. shot -> M_shot, cross -> M_cross, dirbble -> M_dribble, pass -> M_pass
+            i.e. shot -> M_shot,
+                 cross -> M_cross,
+                 dirbble -> M_dribble,
+                 pass -> M_pass
         
         action_to_player : dict[str, list[int]]
             Store corresponding player IDs
-            i.e. shot -> [34, 234, 232, ... list of player_ids for action shot], cross -> [454, 643, ...]
+            i.e. shot -> [34, 234, 232, ... list of player_ids for action shot],
+                 cross -> [454, 643, ...], ...
         
         actions_to_vector : dict[str, np.ndarray] 
             Dictionary to store the resulting feature vectors for each action type
@@ -376,6 +379,15 @@ class PlayerVectors:
         --------
         None
         """
+        # ---------------------------------------------------------------------
+        # Initialize Membervariables 
+        # ---------------------------------------------------------------------
+        self.player_vectors = {}
+        self.player_names = player_names 
+        self.action_M = {}
+        self.action_W = {}
+        self.action_H = {}
+        
         # ---------------------------------------------------------------------
         # 1. Selecting Relevant Action Types 
         # ---------------------------------------------------------------------
@@ -397,13 +409,15 @@ class PlayerVectors:
         # ---------------------------------------------------------------------
         # (3.x): Compress matrices M by apply non-negative matrix factorization
         # ---------------------------------------------------------------------
-        actions_to_vectors = self.compress(action_to_matrix, verbose=verbose)
+        actions_to_vectors = self.compress(action_to_matrix,
+                                           verbose=verbose)
  
 
         # ---------------------------------------------------------------------
         # (4): Assemble Player Vectors
         # ---------------------------------------------------------------------
-        self.player_vectors = self.assemble(actions_to_vectors, action_to_player)
+        self.player_vectors = self.assemble(actions_to_vectors,
+                                            action_to_player)
 
     def plot_principle_components(self,
                                   figsize: tuple[int, int]=(20, 40)) -> plt.plot:
