@@ -189,10 +189,10 @@ def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,in
 
 
 
-            match_to_home[int( dataset.iloc[i]["wyId"])] =[
-                (player, team_id1 if player in allplayersteam1 else team_id2),
-                (team_id1,side_team1, team1_winner, team1__score,int(dataset.iloc[i]["gameweek"]), get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId"))),
-                (team_id2,side_team2, team2_winner,team2__score,int(dataset.iloc[i]["gameweek"]),  get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId")))]
+                match_to_home[int( dataset.iloc[i]["wyId"])] =[
+                    (player, team_id1 if player in allplayersteam1 else team_id2),
+                    (team_id1,side_team1, team1_winner, team1__score,int(dataset.iloc[i]["gameweek"]), get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId"))),
+                    (team_id2,side_team2, team2_winner,team2__score,int(dataset.iloc[i]["gameweek"]),  get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId")))]
         return dataset 
 
 
