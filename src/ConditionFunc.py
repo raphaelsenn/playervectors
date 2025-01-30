@@ -160,7 +160,7 @@ def get_all_player(str_input:str , to_find:str, start=0)-> list[int]:
     number = get_number(str_input, index)
     return [number]+get_all_player(str_input[index+ len(to_find):], to_find)
 
-def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,int]]])-> Callable[[pd.DataFrame],pd.DataFrame]:
+def get_match_context_old(match_to_home:dict[int, list[tuple[int,int,str, int,int,int]]])-> Callable[[pd.DataFrame],pd.DataFrame]:
     """
     is a wrapper for a funtion who stores in the dict you giva as argument
     all machtid map to kontext parameters
@@ -198,4 +198,38 @@ def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,in
 
     return inside_get_match_context
 
+
+def get_match_context(match_to_home:dict[int, list[tuple[int,int,str, int,int,int]]])-> Callable[[pd.DataFrame],pd.DataFrame]:
+    """
+    is a wrapper for a funtion who stores in the dict you giva as argument
+    all machtid map to kontext parameters
+
+    """
+    def inside_get_match_context(dataset:pd.DataFrame)-> pd.DataFrame:
+        for i in range(len(dataset["teamsData"])):
+
+            side_team1 =dataset.iloc[i]["team1.side"]
+            side_team2 =dataset.iloc[i]["team2.side"]
+            team_id1 =dataset.iloc[i]["team1.teamId"] 
+            team_id2 =dataset.iloc[i]["team2.teamId"]
+            team1__score = int(dataset.iloc[i]["team1.score"])
+            team2__score = int(dataset.iloc[i]["team2.score"])
+            team1_winner = "win"
+            team2_winner = "lose"
+            if team1__score<team2__score:
+                team1_winner ="lose"
+                team2_winner ="win"
+            elif team1__score==team2__score:
+                team1_winner = "tie"
+                team2_winner = "tie"
+
+
+
+            match_to_home[(int( dataset.iloc[i]["wyId"]))] =[
+                (team_id1,side_team1, team1_winner, team1__score,int(dataset.iloc[i]["gameweek"]), get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId"))),
+                (team_id2,side_team2, team2_winner,team2__score,int(dataset.iloc[i]["gameweek"]),  get_number(dataset.iloc[i]["referees"],str(dataset.iloc[i]["referees"]).find("refereeId")))]
+        return dataset 
+
+
+    return inside_get_match_context
 
