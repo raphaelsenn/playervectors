@@ -1,13 +1,29 @@
 # playervectors
 Implementation of [Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams](https://ecmlpkdd2019.org/downloads/paper/701.pdf) in python.
 
+## Usage
+
+```python
+from playervectors import PlayerVectors
+
+
+pvs = PlayerVectors(shape=(50, 50),
+                    actions=['shot', 'cross', 'dribble', 'pass'],
+                    components=[4, 4, 5, 5])
+
+pvs.fit(coordinates=coordinates,
+        minutes_played=minutes_played,
+        player_names=playersID_to_name,
+        verbose=True)
+```
+
 ## Building Player Vectors
 
 ### 1. Selecting Relevant Action Types
 Let $k_t$ be the number of principal components chosen to compress heatmaps of action type $t$.
 
-According to the paper, $k_t$ with $t \in \{\text{shot}, \text{cross}, \text{dribble}, \text{pass}\}$ with corresponding components $\{4, 4, 5, 5\}$ is the minimal number of components needed to explain
-70% of the variance in the heatmaps of action type $t$.
+According to the paper, $k_t$ with $t \in$ $\{\text{shot}, \text{cross}, \text{dribble}, \text{pass}\}$ with corresponding components $\{4, 4, 5, 5\}$ is the minimal number of components needed to explain 70% of the variance in the heatmaps of action type $t$.
+
 
 This parameter setting
 was empirically found to work well because of the high variability of players
