@@ -22,7 +22,7 @@ pvs.fit(coordinates=coordinates,
 ### 1. Selecting Relevant Action Types
 Let $k_t$ be the number of principal components chosen to compress heatmaps of action type $t$.
 
-According to the paper, $k_t$ with $t \in$ $\{\text{shot}, \text{cross}, \text{dribble}, \text{pass}\}$ with corresponding components $\{4, 4, 5, 5\}$ is the minimal number of components needed to explain 70% of the variance in the heatmaps of action type $t$.
+According to the paper, $k_t$ with $t \in$ {shot, cross, dribble, pass} with corresponding components {4, 4, 5, 5} is the minimal number of components needed to explain 70% of the variance in the heatmaps of action type $t$.
 
 
 This parameter setting
