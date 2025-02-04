@@ -43,6 +43,11 @@ on the field rather than model every position on the field he ever occupied.
 </p>
 
 #### 2.2 Normalizing
+![image](res/counting_norm.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
 
 #### 3.3 Smoothing
 ![image](res/smoothing.png)
@@ -63,6 +68,13 @@ on the field rather than model every position on the field he ever occupied.
 
 
 #### 3.2 Construct the matrix M
+
+![image](res/matrix_m.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Source: Tom Decroos and Jesse Davis, September 19th, 2019 ECMLPKDD</em>
+</p>
+
 
 #### 3.3 Compress matrix M by applying non-negative matrix factorization (NMF)
 
