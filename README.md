@@ -121,10 +121,6 @@ Only teams of Premier League, Ligue 1, Bundesliga, Serie A and La Liga are liste
 
 [https://www.kaggle.com/datasets/vivovinco/football-analytics](https://www.kaggle.com/datasets/vivovinco/football-analytics)
 
-
-
-
-
 ## Citations
 
 ```bibtex
@@ -136,6 +132,3 @@ Playing Style from Match Event Streams},
   year      = {2019},
 }
 ```
-
-#### Paper of Author: [paper](https://ecmlpkdd2019.org/downloads/paper/701.pdf)
-#### PowerPoint of Author: [powerpoint](https://tomdecroos.github.io/reports/playing-style-wide-v2.pdf)
