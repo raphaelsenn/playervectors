@@ -421,7 +421,8 @@ class PlayerVectors:
                                             action_to_player)
 
     def plot_principle_components(self,
-                                  figsize: tuple[int, int]=(20, 40)) -> plt.plot:
+                                  figsize: tuple[int, int]=(20, 40)
+                                  ) -> plt.plot:
         """
         Visualize Principal Components of Player Vector 
         
@@ -462,8 +463,9 @@ class PlayerVectors:
 
         return fig  # Return the figure object
  
-    def plot_boxplot_distribution(self,
-                                  figsize: tuple[int, int]=(16, 8)) -> plt.plot:
+    def plot_distribution(self,
+                          figsize: tuple[int, int]=(16, 8)
+                          ) -> plt.plot:
         """
         Visualize Principal Components of Player Vector 
         
@@ -482,6 +484,7 @@ class PlayerVectors:
         plt.figure(figsize=(16, 8))
         plt.title('Boxplot Weight Distribution')
         sns.boxplot(data=data)
+        plt.ylim(0, 1)
         plt.xlabel('Components')
         plt.ylabel('Weights')
         return plt.gcf()
