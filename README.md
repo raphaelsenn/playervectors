@@ -10,6 +10,7 @@ pip install playervectors
 ## Usage
 
 ### Fitting PlayerVectors
+Building **18**-component **PlayerVectors** with selected actions **shot**, **cross**, **dribble** and **pass** with respective components **4**, **4**, **5** and **5**.
 ```python
 from playervectors import PlayerVectors
 
