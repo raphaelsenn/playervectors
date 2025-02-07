@@ -186,3 +186,8 @@ eventstreams/
 !example_teams.csv
 !example_playerrank.csv
 !player_vectors.csv
+
+# Ignore build artifacts
+dist/
+build/
+*.egg-info/

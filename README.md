@@ -1,6 +1,12 @@
 # playervectors
 Implementation of [Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams](https://ecmlpkdd2019.org/downloads/paper/701.pdf) in python.
 
+## Install
+
+```bash
+pip install playervectors
+```
+
 ## Usage
 
 ```python
