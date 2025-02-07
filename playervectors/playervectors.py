@@ -133,6 +133,7 @@ class PlayerVectors:
         """ 
         self.player_names = player_names
         player_heatmaps: dict[int, list[np.ndarray]] = {}
+
         for action_index, action in enumerate(actions):
             for player_id, coordinates_xy in list(coordinates[action].items()):
                 if player_id not in player_heatmaps:
@@ -462,7 +463,6 @@ class PlayerVectors:
                           figsize: tuple[int, int]=(16, 8)
                           ) -> plt.plot:
         """
-        Visualize Principal Components of Player Vector 
         
         Parameters:
         ----------- 
@@ -476,13 +476,49 @@ class PlayerVectors:
         weights = [player_vector for id, player_vector in self.player_vectors.items() if len(player_vector) == 18 and id in self.player_names]
         data = pd.DataFrame(weights, columns=[n for n in range(1, 19)])
 
-        plt.figure(figsize=(16, 8))
+        plt.figure(figsize=figsize)
         plt.title('Boxplot Weight Distribution')
         sns.boxplot(data=data)
         plt.ylim(0, 1)
         plt.xlabel('Components')
         plt.ylabel('Weights')
         return plt.gcf()
+
+    def plot_weights(self,
+                     player_id: int,
+                     figsize: tuple[int, int]=(12, 6),
+                     ylim: float=0.6) -> plt.plot:
+        """
+        
+        """ 
+        
+        # Define the range of principal components
+        k_components = list(range(1, 19))
+
+        if player_id in self.player_vectors:
+            player_name = self.player_names.get(player_id, '')
+            player_vector = self.player_vectors[player_id] 
+
+            # Ensure the component values contain the expected number of elements
+            plt.figure(figsize=figsize)  # Set figure size for better visualization
+            plt.xlabel('Component')
+            plt.ylabel('Weight')
+            plt.ylim(0, ylim)
+
+            # Scatter plot of component weights for the player
+            plt.scatter(
+                k_components,
+                player_vector,
+                color='red',
+                edgecolors='black',
+                label=player_name
+            )
+            plt.xticks(k_components)  # Set x-axis ticks for clarity
+            plt.legend(title="Player")  # Add a legend with a title
+            plt.title(f'Weights for {player_name}')  # Add a plot title
+            return plt.gcf() 
+        return
+
 
 class PlayerHeatMap:
     """
