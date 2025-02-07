@@ -11,15 +11,10 @@ from sklearn.decomposition import NMF
 
 class PlayerVectors:
     """
-    Given:
-        - Event stream data describing actions of player p 
-    
-    Build: 
-        - A fixed-size player vector that characterizes player's p playing style and
-        can be interpreted both by human analysts and machine learning systems. 
+    A class to summarise the playing styles of individual football players.
     """ 
     def __init__(self,
-                 shape: tuple[int, int] = (50, 50), 
+                 grid: tuple[int, int] = (50, 50), 
                  sigma: float=3.0,
                  actions: list[str] = ['shot', 'cross', 'dribble', 'pass'],
                  components: list[int] =[4, 4, 5, 5],
@@ -45,7 +40,7 @@ class PlayerVectors:
         # ---------------------------------------------------------------------
         # Hyperparameters:
         # ---------------------------------------------------------------------
-        self.grid = shape
+        self.grid = grid 
         self.sigma = sigma
         self.actions = actions
         self.components = components
