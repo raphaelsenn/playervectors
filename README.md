@@ -9,6 +9,7 @@ pip install playervectors
 
 ## Usage
 
+### Fitting PlayerVectors
 ```python
 from playervectors import PlayerVectors
 
@@ -22,6 +23,53 @@ pvs.fit(coordinates=coordinates,
         player_names=playersID_to_name,
         verbose=True)
 ```
+
+### Plotting Principle Components
+
+```python
+import matplotlib.pyplot as plt
+
+pvs.plot_principle_components()
+plt.show()
+```
+![image](res/principle_components.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Output of: pvs.plot_principle_components()</em>
+</p>
+
+
+### Plotting Weight Distribution
+
+```python
+import matplotlib.pyplot as plt
+
+pvs.plot_distribution()
+plt.show()
+```
+![image](res/distribution_weights.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Output of: pvs.plot_distribution()</em>
+</p>
+
+### Plotting Weights of a Player
+
+```python
+import matplotlib.pyplot as plt
+
+# wy_id of Kevin De Bruyne (Central midfielder)
+pvs.plot_weights(player_id=38021)
+plt.show()
+```
+
+![image](res/weights_kevin.png)
+
+<p style="font-size: 12px; text-align: center;">
+    <em>Output of: pvs.plot_weights(player_id=38021)</em>
+</p>
+
+
 
 ## Building Player Vectors
 
