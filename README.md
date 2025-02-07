@@ -14,7 +14,7 @@ pip install playervectors
 from playervectors import PlayerVectors
 
 
-pvs = PlayerVectors(shape=(50, 50),
+pvs = PlayerVectors(grid=(50, 50),
                     actions=['shot', 'cross', 'dribble', 'pass'],
                     components=[4, 4, 5, 5])
 
