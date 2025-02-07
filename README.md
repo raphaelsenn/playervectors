@@ -20,7 +20,7 @@ pvs = PlayerVectors(grid=(50, 50),
 
 pvs.fit(coordinates=coordinates,
         minutes_played=minutes_played,
-        player_names=player_name)
+        player_names=player_names)
 ```
 
 ### Plotting Principle Components
