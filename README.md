@@ -9,6 +9,19 @@ pip install playervectors
 
 ## Usage
 
+## Expected Format for `df_events` (SPADL Format)
+
+The `df_events` DataFrame used in `PlayerVectors.fit()` must follow the **SPADL format**, with the following required column names:
+
+| Column Name  | Description |
+|-------------|------------|
+| **player_id**  | Unique identifier for the player. |
+| **action_type** | Type of action or event (e.g., shot, pass, cross, dribble). |
+| **x_start** | X-coordinate where the action starts. |
+| **y_start** | Y-coordinate where the action starts. |
+| **x_end** | X-coordinate where the action ends. |
+| **y_end** | Y-coordinate where the action ends. |
+
 ### Fitting PlayerVectors
 Building **18**-component **PlayerVectors** with selected actions **shot**, **cross**, **dribble** and **pass** with respective components **4**, **4**, **5** and **5**.
 ```python
