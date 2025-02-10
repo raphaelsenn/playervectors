@@ -35,6 +35,7 @@ new_column_names = {'player_id': 'your_player_id',
 
 ### Fitting PlayerVectors
 Building **18**-component **PlayerVectors** with selected actions **shot**, **cross**, **dribble** and **pass** with respective components **4**, **4**, **5** and **5**.
+
 ```python
 from playervectors import PlayerVectors
 
@@ -47,6 +48,13 @@ pvs.fit(df_events=df_events,
         minutes_played=minutes_played,
         player_names=player_names)
 ```
+
+| Parameter  | Description |
+|-------------|------------|
+| **df_events**  | Event Stream Data in SPADL-Format. |
+| **minutes_played** | A dictionary that maps each player_id to the total minutes they played across all events in df_events|
+| **player_names** | Mapping player_id to player_name. |
+
 
 ### Plotting Principle Components
 
