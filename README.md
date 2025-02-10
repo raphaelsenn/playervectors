@@ -19,7 +19,7 @@ pvs = PlayerVectors(grid=(50, 50),
                     actions=['shot', 'cross', 'dribble', 'pass'],
                     components=[4, 4, 5, 5])
 
-pvs.fit(coordinates=coordinates,
+pvs.fit(df_events=df_events,
         minutes_played=minutes_played,
         player_names=player_names)
 ```

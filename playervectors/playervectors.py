@@ -1,12 +1,29 @@
+"""
+Unoffical Implementation of Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams
+
+Author: Raphael Senn
+"""
+# -----------------------------------------------------------------------------
+# Standard python libary:
+# -----------------------------------------------------------------------------
+import warnings
+import math
+
+# -----------------------------------------------------------------------------
+# Dependencies:
+# -----------------------------------------------------------------------------
 import numpy as np
 import seaborn as sns
 import pandas as pd
-import warnings
-import math
 import matplotlib.pyplot as plt
 
-from scipy.ndimage import gaussian_filter
 from sklearn.decomposition import NMF
+from scipy.ndimage import gaussian_filter
+
+# -----------------------------------------------------------------------------
+# Imports from own modules:
+# -----------------------------------------------------------------------------
+from playervectors.helpers import ExtractCoordinates
 
 
 class PlayerVectors:
@@ -18,7 +35,7 @@ class PlayerVectors:
                  sigma: float=3.0,
                  actions: list[str] = ['shot', 'cross', 'dribble', 'pass'],
                  components: list[int] =[4, 4, 5, 5],
-                 init_nmf: str='nndsvd', 
+                 init_nmf: str='nndsvd'
                  ) -> None:
         """
         Parameters:
@@ -79,16 +96,16 @@ class PlayerVectors:
             which maps player_id to a tuple of lists with x,y coordinates.
 
             E.g.
-            'shot' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
+            {'shot' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
                        player2 -> ([x1, x2, ...], [y1, y2, ...]),
                        player3 -> ...}, ...},
             
             'cross' -> {player1 -> ([x1, x2, ...], [y1, y2, ...]),
                         player2 -> ([x1, x2, ...], [y1, y2, ...]),
-                        player3 -> ...}, ...}.
+                        player3 -> ...}, ...},
             
             'dribble' -> {...},
-            ... 
+            ...}
 
         actions : list[str]
             Names of action types the Player Vectors should be build on.
@@ -134,16 +151,19 @@ class PlayerVectors:
         self.player_names = player_names
         player_heatmaps: dict[int, list[np.ndarray]] = {}
 
+        # ---------------------------------------------------------------------
+        # Counting + Normalizing + Smoothing:
+        # ---------------------------------------------------------------------
         for action_index, action in enumerate(actions):
             for player_id, coordinates_xy in list(coordinates[action].items()):
                 if player_id not in player_heatmaps:
                         player_heatmaps[player_id] = [np.zeros(self.grid) for _ in range(len(actions))]
-                    # player_heatmaps[playerID] = []
                 
+                # Lists of x and y coordinates for specific action
                 x, y = coordinates_xy[0], coordinates_xy[1] 
 
                 # Check for played minutes 
-                minutes = 0.0 
+                minutes = 0.0
                 if player_id in minutes_played: 
                     minutes = minutes_played[player_id] 
 
@@ -152,17 +172,17 @@ class PlayerVectors:
                 if player_id in player_names:
                     player_name = player_names[player_id]
 
-                # Build Player-Vectors
-                heatmap = PlayerHeatMap(shape=self.grid,
+                # Build PlayerHeatmap
+                player_heatmap = PlayerHeatMap(shape=self.grid,
                                         player_name=player_name,
                                         player_id=player_id,
                                         action_name=action,
-                                        sigma=self.sigma,
-                                        map_size=[[0, 105], [0, 105]])
+                                        sigma=self.sigma)
 
                 # 1 - 3: Counting + Normalizing + Smoothing
-                heatmap.fit(x, y, minutes)
-                player_heatmaps[player_id][action_index] = heatmap.heatmap_
+                player_heatmap.fit(x, y, minutes)
+                player_heatmaps[player_id][action_index] = player_heatmap.heatmap_
+
         return player_heatmaps
 
     def reshaping(self,
@@ -179,24 +199,28 @@ class PlayerVectors:
         Variables:
         ---------- 
         action_to_matrix : dict[int, list[np.ndarray]] 
-            Mapping each action type to its corresponding matrix (M_action)
-
+            Mapping each action type to its corresponding matrix M_action
+            i.e. shot -> M_shot, cross -> M_cross,
+                 dirbble -> M_dribble, pass -> M_pass
+        
         action_to_player : dict[int, list[int]]
             Store corresponding player IDs
+            i.e. shot -> [34, 234, 232, ... list of player_ids for action shot],
+                 cross -> [454, 643, ...]
         
         Returns:
         --------
             tuple[dict[str, np.ndarray], dict[str, list[int]]]
         """ 
-        # Mapping each action type to its corresponding matrix (M_action)
-        # i.e. shot -> M_shot, cross -> M_cross, dirbble -> M_dribble, pass -> M_pass
+        # Mapping each action type to its corresponding matrix M_action
         action_to_matrix = {action: [] for action in self.actions}
 
-        # Store corresponding player IDs
-        # i.e. shot -> [34, 234, 232, ... list of player_ids for action shot], cross -> [454, 643, ...]
+        # Store corresponding player_id's
         action_to_player = {action: [] for action in self.actions}
 
-        # Reshaping
+        # ---------------------------------------------------------------------
+        # Reshaping:
+        # ---------------------------------------------------------------------
         for playerID, list_heatmaps in player_heatmaps.items():
             
             # list_heatmaps of structure: [heatmap_shot, heatmap_cross, heatmap_dribble, heatmap_pass]
@@ -211,7 +235,9 @@ class PlayerVectors:
                 # Save corresponding player_ids
                 action_to_player[self.actions[action_index]].append(playerID)
 
+        # ---------------------------------------------------------------------
         # Construction of matrix M:
+        # ---------------------------------------------------------------------
         for action in action_to_matrix:
             M = np.array(action_to_matrix[action])
             M = M.reshape(len(M), self.grid[0] * self.grid[1]).T 
@@ -239,12 +265,11 @@ class PlayerVectors:
         -------
         
         """ 
-        
         # -----------------------------------------------------------------------------
         # Compress matrix M by applying non-negative matrix factorization (NMF)
+        # ---------------------------------------------------------------------
 
         # Dictionary to store the resulting feature vectors for each action type
-        # i.e. shot -> []
         actions_to_vectors = {}
         for i, (action, M) in enumerate(action_to_matrix.items()):
             # Suppress all convergence warnings from sklearn
@@ -288,8 +313,9 @@ class PlayerVectors:
         Returns:
         ------- 
         """ 
-        # ------------------------------------------------------
-        # Assemble Player Vectors
+        # ---------------------------------------------------------------------
+        # Assemble Player Vectors:
+        # ---------------------------------------------------------------------
 
         # Mapping player'ids to corresponding 18-component player vector
         player_to_vector = {}
@@ -303,7 +329,7 @@ class PlayerVectors:
         return player_to_vector
 
     def fit(self,
-            coordinates: dict[str, dict[int, tuple[list[int], list[int]]]],
+            df_events: pd.DataFrame,
             minutes_played: dict[int, int],
             player_names: dict[int, str],
             verbose: bool=False) -> None:
@@ -317,7 +343,9 @@ class PlayerVectors:
 
         Parameters:
         -----------
-        
+        df : pd.DataFrame
+            A DataFrame with event stream data in SPADL format
+
         coordinates : dict[str, dict[int, tuple[list[int], list[int]]]]
             Mapping action's to a dictionary which maps player_id to a tuple of lists with x,y coordinates.
 
@@ -389,6 +417,14 @@ class PlayerVectors:
         # 1. Selecting Relevant Action Types 
         # ---------------------------------------------------------------------
         # Done, when PlayerVectors object is created.
+        
+        # {action -> {playerID -> ([list of x coordinates], [list of y coordinates])}}
+        coordinates = ExtractCoordinates(df=df_events,
+                                 column_player_id='player_id',
+                                 column_event_name='type_name',
+                                 column_x='start_x',
+                                 column_y='start_y',
+                                 actions=['pass', 'cross', 'dribble', 'shot'])
         
         # ---------------------------------------------------------------------
         # 2. Constructing Heatmaps (Counting + Normalizing + Smoothing)
@@ -596,7 +632,9 @@ class PlayerHeatMap:
         and y values on the ordinate axis. Rather, x is histogrammed along the first dimension of the array (vertical),
         and y along the second dimension of the array (horizontal). This ensures compatibility with histogramdd. 
         """ 
+        # ---------------------------------------------------------------------
         # Building a Player Heatmap 
+        # ---------------------------------------------------------------------
 
         # 1. Counting 
         self.raw_counts_, _, _ = np.histogram2d(y, x, bins=[self.shape_[0], self.shape_[1]], range=self.map_size)
