@@ -332,6 +332,12 @@ class PlayerVectors:
             df_events: pd.DataFrame,
             minutes_played: dict[int, int],
             player_names: dict[int, str],
+            column_names: dict[str, str] = {'player_id': 'player_id',
+                                            'action_type': 'action_type',
+                                            'x_start': 'x_start',
+                                            'y_start': 'y_start',
+                                            'x_end': 'x_end',
+                                            'y_end': 'y_end'},
             verbose: bool=False) -> None:
         """
         Given:

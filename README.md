@@ -22,6 +22,17 @@ The `df_events` DataFrame used in `PlayerVectors.fit()` must follow the **SPADL 
 | **x_end** | X-coordinate where the action ends. |
 | **y_end** | Y-coordinate where the action ends. |
 
+If not, change the mapping in `PlayerVectors.fit(column_names=new_column_names)` such that:
+
+```python
+new_column_names = {'player_id': 'your_player_id',
+                    'action_type': 'your_action_type',
+                    'x_start': 'your_x_start',
+                    'y_start': 'your_y_start',
+                    'x_end': 'your_x_end',
+                    'y_end': 'your_y_end'}
+```
+
 ### Fitting PlayerVectors
 Building **18**-component **PlayerVectors** with selected actions **shot**, **cross**, **dribble** and **pass** with respective components **4**, **4**, **5** and **5**.
 ```python
