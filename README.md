@@ -25,12 +25,14 @@ The `df_events` DataFrame used in `PlayerVectors.fit()` must follow the **SPADL 
 If not, change the mapping in `PlayerVectors.fit(column_names=new_column_names)` such that:
 
 ```python
-new_column_names = {'player_id': 'your_player_id',
-                    'action_type': 'your_action_type',
-                    'x_start': 'your_x_start',
-                    'y_start': 'your_y_start',
-                    'x_end': 'your_x_end',
-                    'y_end': 'your_y_end'}
+new_column_names = {
+    'player_id': 'your_player_id',
+    'action_type': 'your_action_type',
+    'x_start': 'your_x_start',
+    'y_start': 'your_y_start',
+    'x_end': 'your_x_end',
+    'y_end': 'your_y_end'
+}
 ```
 
 ### Fitting PlayerVectors
@@ -40,13 +42,17 @@ Building **18**-component **PlayerVectors** with selected actions **shot**, **cr
 from playervectors import PlayerVectors
 
 
-pvs = PlayerVectors(grid=(50, 50),
-                    actions=['shot', 'cross', 'dribble', 'pass'],
-                    components=[4, 4, 5, 5])
+pvs = PlayerVectors(
+    grid=(50, 50),
+    actions=['shot', 'cross', 'dribble', 'pass'],
+    components=[4, 4, 5, 5]
+)
 
-pvs.fit(df_events=df_events,
-        minutes_played=minutes_played,
-        player_names=player_names)
+pvs.fit(
+    df_events=df_events,
+    minutes_played=minutes_played,
+    player_names=player_names
+)
 ```
 
 | Parameter  | Description |
@@ -60,6 +66,7 @@ pvs.fit(df_events=df_events,
 
 ```python
 import matplotlib.pyplot as plt
+
 
 pvs.plot_principle_components()
 plt.show()
@@ -76,6 +83,7 @@ plt.show()
 ```python
 import matplotlib.pyplot as plt
 
+
 pvs.plot_distribution()
 plt.show()
 ```
@@ -89,6 +97,7 @@ plt.show()
 
 ```python
 import matplotlib.pyplot as plt
+
 
 # wy_id of Kevin De Bruyne (Central midfielder)
 pvs.plot_weights(player_id=38021)
@@ -180,32 +189,28 @@ for the relevant action types.
 ![image](res/algorithm.png)
 
 
-## Use Repository with Data
+## Running `demo.ipynb`
 
 #### 1. Download this [Dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset) on Kaggle
 
-#### 2. Create a folder named event_streams in this Repository
+#### 2. Create a folder named `data` in this Repository
 
 ```bash
-mkdir event_streams
+mkdir data
 ```
 
-#### 3. Copy all .csv files from the Dataset in the folder event_streams
+#### 3. Copy all .csv files from the Dataset in the folder `data`
 
-
+#### 4. Run notebook `demo.ipynb`
 
 ## About the Datasets
 
-### Dataset 1
-All the credit is to Luca Pappalardo and Emmanuele Massucco.
-
-[https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset)
-
-### Dataset 2
 This dataset contains European football team stats.
 Only teams of Premier League, Ligue 1, Bundesliga, Serie A and La Liga are listed.
 
-[https://www.kaggle.com/datasets/vivovinco/football-analytics](https://www.kaggle.com/datasets/vivovinco/football-analytics)
+All the credit is to Luca Pappalardo and Emmanuele Massucco.
+
+[https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset](https://www.kaggle.com/datasets/aleespinosa/soccer-match-event-dataset)
 
 ## Citations
 

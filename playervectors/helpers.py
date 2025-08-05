@@ -2,9 +2,11 @@ import pandas as pd
 import ast
 
 
-def ExtractPlayers(df: pd.DataFrame,
-                   wy_id: str,
-                   attributes: list[str]) -> dict[int, list]:
+def extractPlayers(
+        df: pd.DataFrame,
+        wy_id: str,
+        attributes: list[str]
+    ) -> dict[int, list]:
     """
     Returns a Dictionary which Maps WyScout Player-ID to the Players attributes.
     
@@ -48,9 +50,11 @@ def ExtractPlayers(df: pd.DataFrame,
     return players
 
 
-def ExtractTeams(df: pd.DataFrame,
-                 wy_id: str,
-                 attributes: list[str]) -> dict[int, list]:
+def extractTeams(
+        df: pd.DataFrame,
+        wy_id: str,
+        attributes: list[str]
+    ) -> dict[int, list]:
     """
     Returns a Dictionary which Maps WyScout Team-ID to the Team attributes.
 
@@ -93,9 +97,11 @@ def ExtractTeams(df: pd.DataFrame,
     return teams
 
 
-def ExtractMinutesPlayed(df: pd.DataFrame,
-                         column_player: str,
-                         column_minutes: str) -> dict[int, float]:
+def extractMinutesPlayed(
+        df: pd.DataFrame,
+        column_player: str,
+        column_minutes: str
+    ) -> dict[int, float]:
     """
     Returns a dict that maps PlayerID to sum of played minutes for every game.
 
@@ -131,13 +137,14 @@ def ExtractMinutesPlayed(df: pd.DataFrame,
     return minutes_played
 
 
-def ExtractCoordinates(df: pd.DataFrame,
-                       column_player_id: str,
-                       column_event_name: str,
-                       column_x: str,
-                       column_y: str,
-                       actions: list[str]) -> dict[str,
-                                                   dict[int, tuple[list[int], list[int]]]]:
+def extractCoordinates(
+        df: pd.DataFrame,
+        column_player_id: str,
+        column_event_name: str,
+        column_x: str,
+        column_y: str,
+        actions: list[str]
+    ) -> dict[str, dict[int, tuple[list[int], list[int]]]]:
     """
     Returns a dictionary that maps each action to a dictionary which maps playerID to a tuple of lists with x,y coordinates 
     
@@ -222,11 +229,13 @@ def ExtractCoordinates(df: pd.DataFrame,
     return action_coordinates
 
 
-def ExtractGoalkeepers(df: pd.DataFrame,
-                        id_col: str = 'wyId',
-                        role_col: str='role',
-                        wy_code: str='code2',
-                        keeper_str: str='GK') -> dict:
+def extractGoalkeepers(
+        df: pd.DataFrame,
+        id_col: str = 'wyId',
+        role_col: str='role',
+        wy_code: str='code2',
+        keeper_str: str='GK'
+    ) -> dict:
     goalkeepers = {} 
     for _, row in df.iterrows():
         role_string = row[role_col]
