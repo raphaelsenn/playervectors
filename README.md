@@ -2,7 +2,7 @@
 
 * Implementation of [Player Vectors: Characterizing Soccer Players Playing Style from Match Event Streams](https://tomdecroos.github.io/reports/ecml19_tomd.pdf) in python.
 
-* You may read more about the algorithmic details of player vecotrs on my blog post [Player Vectors: Implementation and Empirical Analysis](https://raphaelsenn.github.io/posts/2026/07/implementing-player-vectors/)
+* You may read more about the algorithmic details of player vectors on my blog post [Player Vectors: Implementation and Empirical Analysis](https://raphaelsenn.github.io/posts/2026/07/implementing-player-vectors/)
 
 ## Install
 
